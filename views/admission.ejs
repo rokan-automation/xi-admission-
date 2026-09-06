@@ -1,0 +1,609 @@
+<%- include('partials/header', { title: 'Admission Application Form' }) %>
+
+<main class="page-wrapper">
+  <div class="form-container">
+    
+    <div class="form-header">
+      <h2>Admission Application Form</h2>
+      <p>Class XI Admission Session <%= currentYear %></p>
+    </div>
+
+    <!-- Custom Error Alert -->
+    <% if (locals.error) { %>
+      <div id="customErrorToast" class="alert-box">
+        <span>⚠️ <%= error %></span>
+      </div>
+    <% } %>
+
+    <!-- 4-Step Progress Stepper -->
+    <div class="stepper">
+      <div class="step-item active" id="step1Indicator">
+        <span class="step-number">1</span>
+        <span class="step-label">Personal</span>
+      </div>
+      <div class="step-line" id="line1"></div>
+      <div class="step-item" id="step2Indicator">
+        <span class="step-number">2</span>
+        <span class="step-label">Address</span>
+      </div>
+      <div class="step-line" id="line2"></div>
+      <div class="step-item" id="step3Indicator">
+        <span class="step-number">3</span>
+        <span class="step-label">SSC Info</span>
+      </div>
+      <div class="step-line" id="line3"></div>
+      <div class="step-item" id="step4Indicator">
+        <span class="step-number">4</span>
+        <span class="step-label">Admission</span>
+      </div>
+    </div>
+
+    <form action="/admission" method="POST" enctype="multipart/form-data" id="admissionForm" autocomplete="off" novalidate>
+      
+      <!-- ================= STEP 1: PERSONAL INFORMATION ================= -->
+      <div id="step1Section">
+        <h3 class="section-title">Personal Information</h3>
+
+        <div class="form-grid-2">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label>Full Name (English) *</label>
+            <input type="text" name="full_name_en" class="history-input" value="<%= old.full_name_en || '' %>" placeholder="FULL NAME IN CAPITAL" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Full Name (Bangla Script) *</label>
+            <input type="text" name="full_name_bn" class="history-input" value="<%= old.full_name_bn || '' %>" placeholder="Name in Bangla script" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+
+          <!-- Father's Name -->
+          <div class="form-group">
+            <label>Father's Name (English) *</label>
+            <input type="text" name="father_name_en" class="history-input" value="<%= old.father_name_en || '' %>" placeholder="Father's full name" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Father's Name (Bangla Script) *</label>
+            <input type="text" name="father_name_bn" class="history-input" value="<%= old.father_name_bn || '' %>" placeholder="Father's name in Bangla" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+
+          <!-- Mother's Name -->
+          <div class="form-group">
+            <label>Mother's Name (English) *</label>
+            <input type="text" name="mother_name_en" class="history-input" value="<%= old.mother_name_en || '' %>" placeholder="Mother's full name" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Mother's Name (Bangla Script) *</label>
+            <input type="text" name="mother_name_bn" class="history-input" value="<%= old.mother_name_bn || '' %>" placeholder="Mother's name in Bangla" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+
+          <!-- Incomes -->
+          <div class="form-group">
+            <label>Father's Monthly Income (BDT) *</label>
+            <input type="number" name="father_income" class="history-input" value="<%= old.father_income || '' %>" placeholder="e.g. 25000" min="0" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Mother's Monthly Income (BDT) *</label>
+            <input type="number" name="mother_income" class="history-input" value="<%= old.mother_income !== undefined ? old.mother_income : '0' %>" placeholder="e.g. 0 or 15000" min="0" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+
+          <!-- DOB & Gender -->
+          <div class="form-group">
+            <label>Date of Birth *</label>
+            <div class="dob-group">
+              <select name="dob_day" required>
+                <option value="">Day</option>
+                <% for (let d = 1; d <= 31; d++) { %>
+                  <option value="<%= d %>" <%= old.dob_day == d ? 'selected' : '' %>><%= d %></option>
+                <% } %>
+              </select>
+              <select name="dob_month" required>
+                <option value="">Month</option>
+                <% const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; %>
+                <% months.forEach((m, idx) => { %>
+                  <option value="<%= idx + 1 %>" <%= old.dob_month == (idx + 1) ? 'selected' : '' %>><%= m %></option>
+                <% }); %>
+              </select>
+              <select name="dob_year" required>
+                <option value="">Year</option>
+                <% for (let y = currentYear - 14; y >= currentYear - 25; y--) { %>
+                  <option value="<%= y %>" <%= old.dob_year == y ? 'selected' : '' %>><%= y %></option>
+                <% } %>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Gender *</label>
+            <select name="gender" required>
+              <option value="">Select Gender</option>
+              <option value="Male" <%= old.gender === 'Male' ? 'selected' : '' %>>Male</option>
+              <option value="Female" <%= old.gender === 'Female' ? 'selected' : '' %>>Female</option>
+              <option value="Other" <%= old.gender === 'Other' ? 'selected' : '' %>>Other</option>
+            </select>
+          </div>
+
+          <!-- Religion & Blood Group (REQUIRED ADDED) -->
+          <div class="form-group">
+            <label>Religion *</label>
+            <select name="religion" required>
+              <option value="">Select Religion</option>
+              <option value="Islam" <%= old.religion === 'Islam' ? 'selected' : '' %>>Islam</option>
+              <option value="Hinduism" <%= old.religion === 'Hinduism' ? 'selected' : '' %>>Hinduism</option>
+              <option value="Christianity" <%= old.religion === 'Christianity' ? 'selected' : '' %>>Christianity</option>
+              <option value="Buddhism" <%= old.religion === 'Buddhism' ? 'selected' : '' %>>Buddhism</option>
+              <option value="Other" <%= old.religion === 'Other' ? 'selected' : '' %>>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Blood Group *</label>
+            <select name="blood_group" required>
+              <option value="">Select Blood Group</option>
+              <% ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].forEach(bg => { %>
+                <option value="<%= bg %>" <%= old.blood_group === bg ? 'selected' : '' %>><%= bg %></option>
+              <% }); %>
+            </select>
+          </div>
+
+          <!-- Mobile & Email -->
+          <div class="form-group">
+            <label>Mobile Number (11 Digits) *</label>
+            <input type="text" name="mobile" class="history-input" maxlength="11" value="<%= old.mobile || '' %>" placeholder="017XXXXXXXX" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address (Optional)</label>
+            <input type="text" name="email" class="history-input" value="<%= old.email || '' %>" placeholder="e.g. name@domain.com" autocomplete="new-password" data-lpignore="true">
+          </div>
+        </div>
+
+        <div style="text-align: right; margin-top: 24px;">
+          <button type="button" class="btn-step" id="btnToStep2">Next: Address Details &rarr;</button>
+        </div>
+      </div>
+
+      <!-- ================= STEP 2: ADDRESS INFORMATION ================= -->
+      <div id="step2Section" style="display: none;">
+        <h3 class="section-title">Address Information</h3>
+
+        <!-- Present Address -->
+        <h4 class="sub-title">1. Present Address *</h4>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Village / Road *</label>
+            <input type="text" id="pres_village" name="present_village" class="history-input" value="<%= old.present_village || '' %>" placeholder="Village or Road" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Post Office *</label>
+            <input type="text" id="pres_post" name="present_post_office" class="history-input" value="<%= old.present_post_office || '' %>" placeholder="Post Office" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Upazila / Thana *</label>
+            <input type="text" id="pres_thana" name="present_thana" class="history-input" value="<%= old.present_thana || '' %>" placeholder="Upazila / Thana" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>District *</label>
+            <input type="text" id="pres_dist" name="present_district" class="history-input" value="<%= old.present_district || '' %>" placeholder="District" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+        </div>
+
+        <!-- Permanent Address -->
+        <div class="address-header-row">
+          <h4 class="sub-title" style="margin: 0;">2. Permanent Address *</h4>
+          <label class="same-address-label">
+            <input type="checkbox" id="sameAddressCheck"> Same as Present Address
+          </label>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 12px;">
+          <div class="form-group">
+            <label>Village / Road *</label>
+            <input type="text" id="perm_village" name="permanent_village" class="history-input" value="<%= old.permanent_village || '' %>" placeholder="Village or Road" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Post Office *</label>
+            <input type="text" id="perm_post" name="permanent_post_office" class="history-input" value="<%= old.permanent_post_office || '' %>" placeholder="Post Office" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Upazila / Thana *</label>
+            <input type="text" id="perm_thana" name="permanent_thana" class="history-input" value="<%= old.permanent_thana || '' %>" placeholder="Upazila / Thana" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>District *</label>
+            <input type="text" id="perm_dist" name="permanent_district" class="history-input" value="<%= old.permanent_district || '' %>" placeholder="District" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+        </div>
+
+        <div class="btn-action-row">
+          <button type="button" class="btn-step btn-back" id="btnBackTo1">&larr; Back: Personal Info</button>
+          <button type="button" class="btn-step" id="btnToStep3">Next: SSC Info &rarr;</button>
+        </div>
+      </div>
+
+      <!-- ================= STEP 3: SSC INFORMATION ================= -->
+      <div id="step3Section" style="display: none;">
+        <h3 class="section-title">SSC Examination Information</h3>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>SSC Roll Number *</label>
+            <input type="text" name="ssc_roll" class="history-input" value="<%= old.ssc_roll || '' %>" placeholder="e.g. 123456" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>SSC Registration Number *</label>
+            <input type="text" name="ssc_reg" class="history-input" value="<%= old.ssc_reg || '' %>" placeholder="e.g. 1234567890" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          <div class="form-group">
+            <label>Education Board *</label>
+            <select name="ssc_board" required>
+              <option value="">Select Board</option>
+              <% ['Dhaka', 'Chittagong', 'Rajshahi', 'Comilla', 'Jessore', 'Barisal', 'Sylhet', 'Dinajpur', 'Mymensingh', 'Madrasah', 'Technical'].forEach(b => { %>
+                <option value="<%= b %>" <%= old.ssc_board === b ? 'selected' : '' %>><%= b %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Passing Year *</label>
+            <select name="passing_year" required>
+              <option value="">Select Year</option>
+              <% for (let yr = currentYear; yr >= currentYear - 3; yr--) { %>
+                <option value="<%= yr %>" <%= old.passing_year == yr ? 'selected' : '' %>><%= yr %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>SSC GPA (Out of 5.00) *</label>
+            <input type="number" step="0.01" min="1.00" max="5.00" name="gpa" class="history-input" value="<%= old.gpa || '' %>" placeholder="5.00" autocomplete="new-password" data-lpignore="true" required>
+          </div>
+          
+          <div class="form-group">
+            <label>SSC Group *</label>
+            <select name="ssc_group" required>
+              <option value="">Select SSC Group</option>
+              <option value="Science" <%= old.ssc_group === 'Science' ? 'selected' : '' %>>Science</option>
+              <option value="Business Studies" <%= old.ssc_group === 'Business Studies' ? 'selected' : '' %>>Business Studies</option>
+              <option value="Humanities" <%= old.ssc_group === 'Humanities' ? 'selected' : '' %>>Humanities</option>
+              <option value="Madrasah / Dakhil" <%= old.ssc_group === 'Madrasah / Dakhil' ? 'selected' : '' %>>Madrasah / Dakhil</option>
+              <option value="Vocational" <%= old.ssc_group === 'Vocational' ? 'selected' : '' %>>Vocational</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-action-row">
+          <button type="button" class="btn-step btn-back" id="btnBackTo2">&larr; Back: Address Info</button>
+          <button type="button" class="btn-step" id="btnToStep4">Next: Admission Details &rarr;</button>
+        </div>
+      </div>
+
+      <!-- ================= STEP 4: CLASS XI ADMISSION & PHOTO ================= -->
+      <div id="step4Section" style="display: none;">
+        <h3 class="section-title">Class XI Admission Details</h3>
+
+        <div class="form-grid-2">
+          <!-- Desired Group -->
+          <div class="form-group">
+            <label>Admission Desired Group *</label>
+            <select name="group_name" required>
+              <option value="">Select Admission Group</option>
+              <option value="Science" <%= old.group_name === 'Science' ? 'selected' : '' %>>Science</option>
+              <option value="Business Studies" <%= old.group_name === 'Business Studies' ? 'selected' : '' %>>Business Studies</option>
+              <option value="Humanities" <%= old.group_name === 'Humanities' ? 'selected' : '' %>>Humanities</option>
+              <option value="BMT (Digital)" <%= old.group_name === 'BMT (Digital)' ? 'selected' : '' %>>BMT (Digital)</option>
+              <option value="BMT (HRM)" <%= old.group_name === 'BMT (HRM)' ? 'selected' : '' %>>BMT (HRM)</option>
+            </select>
+          </div>
+
+          <!-- Academic Session -->
+          <div class="form-group">
+            <label>Academic Session *</label>
+            <select name="academic_session" required>
+              <option value="<%= currentYear %>-<%= currentYear + 1 %>"><%= currentYear %>-<%= currentYear + 1 %></option>
+              <option value="<%= currentYear - 1 %>-<%= currentYear %>"><%= currentYear - 1 %>-<%= currentYear %></option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Multiple Extra-Curricular Activities -->
+        <div class="form-group full-width" style="margin-top: 16px;">
+          <label style="font-weight: 600; color: #1e3a8a; margin-bottom: 8px;">
+            Extra-Curricular Activities (Select all that apply)
+          </label>
+          
+          <div class="activity-container">
+            <div class="activity-group">
+              <span class="activity-title">🎵 Music / Singing:</span>
+              <div class="activity-chips">
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Modern Song"> Modern Song</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Rabindra Sangeet"> Rabindra Sangeet</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Nazrul Geeti"> Nazrul Geeti</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Folk Song"> Folk Song</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Bhawaiya"> Bhawaiya</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Islamic Song"> Islamic Song</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Kirtan"> Kirtan</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Other Music"> Other Music</label>
+              </div>
+            </div>
+
+            <div class="activity-group" style="margin-top: 14px;">
+              <span class="activity-title">⚽ Sports & Athletics:</span>
+              <div class="activity-chips">
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Football"> Football</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Cricket"> Cricket</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Volleyball"> Volleyball</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Athletics"> Athletics</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Other Sports"> Other Sports</label>
+              </div>
+            </div>
+
+            <div class="activity-group" style="margin-top: 14px;">
+              <span class="activity-title">🎭 Cultural & Literary:</span>
+              <div class="activity-chips">
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Debate"> Debate</label>
+                <label class="chip"><input type="checkbox" name="extra_activities" value="Dance"> Dance</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Photo -->
+        <div class="form-group full-width" style="margin-top: 16px;">
+          <label>Student Photo (Max 2MB, JPG/PNG) *</label>
+          <input type="file" name="photo" id="photoInput" accept="image/*" class="file-input" required>
+        </div>
+
+        <div class="btn-action-row">
+          <button type="button" class="btn-step btn-back" id="btnBackTo3">&larr; Back: SSC Info</button>
+          <button type="submit" class="btn-step btn-submit" id="submitAppBtn">Submit Application</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</main>
+
+<div id="scriptToast" class="script-toast"></div>
+<div id="historyPopup" class="custom-history-popup"></div>
+
+<link rel="stylesheet" href="/public/css/admission.css">
+
+<script>
+  // Step Sections
+  const s1 = document.getElementById('step1Section');
+  const s2 = document.getElementById('step2Section');
+  const s3 = document.getElementById('step3Section');
+  const s4 = document.getElementById('step4Section');
+
+  // Indicators
+  const ind1 = document.getElementById('step1Indicator');
+  const ind2 = document.getElementById('step2Indicator');
+  const ind3 = document.getElementById('step3Indicator');
+  const ind4 = document.getElementById('step4Indicator');
+
+  const line1 = document.getElementById('line1');
+  const line2 = document.getElementById('line2');
+  const line3 = document.getElementById('line3');
+
+  // Custom Toast Notification Handler
+  const toast = document.getElementById('scriptToast');
+  let toastTimer = null;
+
+  function notifyUser(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2500);
+  }
+
+  // Strict Section Validator (Checks every required input & select)
+  function validateSection(section) {
+    const inputs = section.querySelectorAll('input[required], select[required]');
+    for (let input of inputs) {
+      if (input.type === 'file') {
+        if (!input.files || input.files.length === 0) {
+          notifyUser('Please choose a student photo');
+          input.focus();
+          return false;
+        }
+      } else if (!input.value || !input.value.trim()) {
+        input.focus();
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+        
+        const labelText = input.closest('.form-group')?.querySelector('label')?.textContent.replace('*', '').trim() || 'required field';
+        notifyUser(`Please fill or select: ${labelText}`);
+        
+        input.addEventListener('input', () => {
+          input.style.borderColor = '#cbd5e1';
+          input.style.boxShadow = 'none';
+        }, { once: true });
+        input.addEventListener('change', () => {
+          input.style.borderColor = '#cbd5e1';
+          input.style.boxShadow = 'none';
+        }, { once: true });
+
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Navigation
+  document.getElementById('btnToStep2').addEventListener('click', () => {
+    if (validateSection(s1)) {
+      s1.style.display = 'none';
+      s2.style.display = 'block';
+      ind1.classList.remove('active');
+      ind2.classList.add('active');
+      line1.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  document.getElementById('btnBackTo1').addEventListener('click', () => {
+    s2.style.display = 'none';
+    s1.style.display = 'block';
+    ind2.classList.remove('active');
+    ind1.classList.add('active');
+    line1.classList.remove('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  document.getElementById('btnToStep3').addEventListener('click', () => {
+    if (validateSection(s2)) {
+      s2.style.display = 'none';
+      s3.style.display = 'block';
+      ind2.classList.remove('active');
+      ind3.classList.add('active');
+      line2.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  document.getElementById('btnBackTo2').addEventListener('click', () => {
+    s3.style.display = 'none';
+    s2.style.display = 'block';
+    ind3.classList.remove('active');
+    ind2.classList.add('active');
+    line2.classList.remove('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  document.getElementById('btnToStep4').addEventListener('click', () => {
+    if (validateSection(s3)) {
+      s3.style.display = 'none';
+      s4.style.display = 'block';
+      ind3.classList.remove('active');
+      ind4.classList.add('active');
+      line3.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  document.getElementById('btnBackTo3').addEventListener('click', () => {
+    s4.style.display = 'none';
+    s3.style.display = 'block';
+    ind4.classList.remove('active');
+    ind3.classList.add('active');
+    line3.classList.remove('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Address Auto-fill checkbox
+  const sameAddressCheck = document.getElementById('sameAddressCheck');
+  sameAddressCheck.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      document.getElementById('perm_village').value = document.getElementById('pres_village').value;
+      document.getElementById('perm_post').value = document.getElementById('pres_post').value;
+      document.getElementById('perm_thana').value = document.getElementById('pres_thana').value;
+      document.getElementById('perm_dist').value = document.getElementById('pres_dist').value;
+    }
+  });
+
+  // Script Validation
+  const banglaScriptInputs = document.querySelectorAll('input[name$="_bn"]');
+  banglaScriptInputs.forEach(input => {
+    input.addEventListener('input', () => {
+      const originalValue = input.value;
+      const filteredValue = originalValue.replace(/[a-zA-Z]/g, '');
+      if (originalValue !== filteredValue) {
+        input.value = filteredValue;
+        notifyUser('Only Bangla script is allowed in this field.');
+      }
+    });
+  });
+
+  const nonBanglaInputs = document.querySelectorAll('input[type="text"]:not([name$="_bn"])');
+  nonBanglaInputs.forEach(input => {
+    input.addEventListener('input', () => {
+      const originalValue = input.value;
+      const filteredValue = originalValue.replace(/[\u0980-\u09FF]/g, '');
+      if (originalValue !== filteredValue) {
+        input.value = filteredValue;
+        notifyUser('Bangla script is not allowed here. Please use English.');
+      }
+    });
+  });
+
+  // Recent 5 History Popup
+  const historyPopup = document.getElementById('historyPopup');
+  const historyInputs = document.querySelectorAll('.history-input');
+
+  function getHistory(fieldName) {
+    try {
+      return JSON.parse(localStorage.getItem('input_hist_' + fieldName)) || [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveHistory(fieldName, val) {
+    if (!val || !val.trim()) return;
+    let list = getHistory(fieldName);
+    list = list.filter(item => item !== val.trim());
+    list.unshift(val.trim());
+    if (list.length > 5) list = list.slice(0, 5);
+    localStorage.setItem('input_hist_' + fieldName, JSON.stringify(list));
+  }
+
+  let currentTargetInput = null;
+
+  historyInputs.forEach(input => {
+    input.addEventListener('focus', () => {
+      const fieldName = input.name;
+      const list = getHistory(fieldName);
+      if (list.length === 0) {
+        historyPopup.style.display = 'none';
+        return;
+      }
+
+      currentTargetInput = input;
+      historyPopup.innerHTML = list.map(item => `
+        <div class="history-item" data-val="${item}">
+          <span class="history-icon">🕒</span>
+          <span>${item}</span>
+        </div>
+      `).join('');
+
+      const rect = input.getBoundingClientRect();
+      historyPopup.style.width = rect.width + 'px';
+      historyPopup.style.top = (rect.bottom + window.scrollY + 3) + 'px';
+      historyPopup.style.left = (rect.left + window.scrollX) + 'px';
+      historyPopup.style.display = 'block';
+    });
+  });
+
+  historyPopup.addEventListener('mousedown', (e) => {
+    const item = e.target.closest('.history-item');
+    if (item && currentTargetInput) {
+      currentTargetInput.value = item.getAttribute('data-val');
+      currentTargetInput.dispatchEvent(new Event('input'));
+      historyPopup.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.history-input') && !e.target.closest('#historyPopup')) {
+      historyPopup.style.display = 'none';
+    }
+  });
+
+  // Final Form Submit
+  const admissionForm = document.getElementById('admissionForm');
+  const submitAppBtn = document.getElementById('submitAppBtn');
+
+  admissionForm.addEventListener('submit', (e) => {
+    if (!validateSection(s4)) {
+      e.preventDefault();
+      return false;
+    }
+
+    historyInputs.forEach(input => {
+      if (input.value && input.name) {
+        saveHistory(input.name, input.value);
+      }
+    });
+
+    submitAppBtn.disabled = true;
+    submitAppBtn.textContent = 'Submitting Application...';
+  });
+</script>
+
+<%- include('partials/footer') %>

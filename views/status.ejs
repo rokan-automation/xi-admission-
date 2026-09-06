@@ -1,0 +1,210 @@
+<%- include('partials/header', { title: 'Application Status & View Form' }) %>
+
+<main class="status-container">
+  
+  <!-- Search Box -->
+  <div class="search-card no-print">
+    <h2>Check Application Status</h2>
+    <p>Enter your <strong>Tracking ID</strong> or <strong>SSC Roll Number</strong> to view your admission form status.</p>
+
+    <!-- Not Found Notification -->
+    <% if (typeof searched !== 'undefined' && searched && notFound) { %>
+      <div class="alert-box">
+        <span>⚠️ No application found matching your Tracking ID or SSC Roll Number.</span>
+      </div>
+    <% } %>
+
+    <form action="/status" method="POST" class="search-form">
+      <input 
+        type="text" 
+        name="search_query" 
+        placeholder="Enter Tracking ID (e.g. XI-2026-XXXX) or SSC Roll" 
+        required 
+      >
+      <button type="submit">Search Form</button>
+    </form>
+  </div>
+
+  <!-- Full Submitted / Approved Application Form View (Read-Only) -->
+  <% if (typeof searched !== 'undefined' && searched && typeof application !== 'undefined' && application) { %>
+    <% const currentStatus = application.status || 'Submitted'; %>
+    
+    <div class="application-view-card">
+      
+      <!-- Banner Header -->
+      <div class="view-header">
+        <div>
+          <h2 style="color: #1e3a8a; margin: 0; font-size: 22px;">XI Class Online Admission Application</h2>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #64748b;">Session: <%= application.academic_session || '2026-2027' %></p>
+        </div>
+        <div class="badge-status">
+          Tracking ID: <%= application.application_id || 'N/A' %>
+        </div>
+      </div>
+
+      <!-- Approved Banner -->
+      <% if (currentStatus === 'Approved') { %>
+        <div class="approved-banner">
+          <div class="approved-item">
+            <span>Admission Status:</span>
+            <strong class="green-text">✓ ADMISSION APPROVED</strong>
+          </div>
+          <div class="approved-item">
+            <span>Assigned Class Roll:</span>
+            <strong class="roll-highlight"><%= application.class_roll || 'Pending' %></strong>
+          </div>
+          <div class="approved-item">
+            <span>Fee Receipt No:</span>
+            <strong><%= application.receipt_no || 'Paid' %></strong>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="form-body-grid">
+        
+        <!-- Left Column: Details -->
+        <div class="details-left">
+          
+          <!-- 1. Personal Info -->
+          <h4 class="section-title">1. PERSONAL INFORMATION</h4>
+          <table class="info-table">
+            <tr>
+              <td>Full Name (English):</td>
+              <td><strong><%= application.full_name_en || '-' %></strong></td>
+            </tr>
+            <tr>
+              <td>Full Name (Bangla):</td>
+              <td><strong><%= application.full_name_bn || '-' %></strong></td>
+            </tr>
+            <tr>
+              <td>Father's Name (English):</td>
+              <td><%= application.father_name_en || '-' %></td>
+            </tr>
+            <tr>
+              <td>Father's Name (Bangla):</td>
+              <td><%= application.father_name_bn || '-' %></td>
+            </tr>
+            <tr>
+              <td>Father's Monthly Income:</td>
+              <td>BDT <%= application.father_income || '0' %></td>
+            </tr>
+            <tr>
+              <td>Mother's Name (English):</td>
+              <td><%= application.mother_name_en || '-' %></td>
+            </tr>
+            <tr>
+              <td>Mother's Name (Bangla):</td>
+              <td><%= application.mother_name_bn || '-' %></td>
+            </tr>
+            <tr>
+              <td>Mother's Monthly Income:</td>
+              <td>BDT <%= application.mother_income || '0' %></td>
+            </tr>
+            <tr>
+              <td>Date of Birth:</td>
+              <td><%= application.date_of_birth || 'N/A' %></td>
+            </tr>
+            <tr>
+              <td>Gender & Religion:</td>
+              <td><%= application.gender || '-' %> | <%= application.religion || 'N/A' %></td>
+            </tr>
+            <tr>
+              <td>Blood Group:</td>
+              <td><%= application.blood_group || 'N/A' %></td>
+            </tr>
+            <tr>
+              <td>Mobile & Email:</td>
+              <td><%= application.mobile || '-' %> | <%= application.email || 'N/A' %></td>
+            </tr>
+          </table>
+
+          <!-- 2. Address Info -->
+          <h4 class="section-title" style="margin-top: 18px;">2. ADDRESS INFORMATION</h4>
+          <table class="info-table">
+            <tr>
+              <td>Present Address:</td>
+              <td><%= application.present_village || '-' %>, PO: <%= application.present_post_office || '-' %>, Upazila: <%= application.present_thana || '-' %>, Dist: <%= application.present_district || '-' %></td>
+            </tr>
+            <tr>
+              <td>Permanent Address:</td>
+              <td><%= application.permanent_village || '-' %>, PO: <%= application.permanent_post_office || '-' %>, Upazila: <%= application.permanent_thana || '-' %>, Dist: <%= application.permanent_district || '-' %></td>
+            </tr>
+          </table>
+
+          <!-- 3. Academic & Allocated Subjects -->
+          <h4 class="section-title" style="margin-top: 18px;">3. ACADEMIC & ADMISSION DETAILS</h4>
+          <table class="info-table">
+            <tr>
+              <td>SSC Roll & Reg:</td>
+              <td>Roll: <%= application.ssc_roll || '-' %> | Reg: <%= application.ssc_reg || '-' %></td>
+            </tr>
+            <tr>
+              <td>Board & Passing Year:</td>
+              <td><%= application.ssc_board || '-' %> Board | <%= application.passing_year || '-' %></td>
+            </tr>
+            <tr>
+              <td>SSC GPA & Group:</td>
+              <td>GPA: <strong><%= application.gpa || '-' %></strong> | Group: <%= application.ssc_group || 'N/A' %></td>
+            </tr>
+            <tr>
+              <td>Enrolled Group:</td>
+              <td><span class="highlight-group"><%= application.group_name || '-' %></span></td>
+            </tr>
+
+            <% if (currentStatus === 'Approved' && application.compulsory_subjects) { %>
+              <tr style="background: #f8fafc;">
+                <td>Compulsory Subjects:</td>
+                <td><%= application.compulsory_subjects %></td>
+              </tr>
+              <tr style="background: #f8fafc;">
+                <td>Elective Subjects:</td>
+                <td><%= application.elective_subjects %></td>
+              </tr>
+              <tr style="background: #f8fafc;">
+                <td>4th Subject:</td>
+                <td><strong><%= application.fourth_subject %></strong></td>
+              </tr>
+            <% } %>
+
+            <tr>
+              <td>Co-Curricular Activities:</td>
+              <td><%= application.activity_category || 'None' %></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <!-- Right Column: Photo & Status Stamp -->
+        <div class="photo-right">
+          <div class="photo-box">
+            <% if (application.photo_url) { %>
+              <img src="<%= application.photo_url %>" alt="Student Photo" loading="lazy" width="130" height="155">
+            <% } else { %>
+              <div class="no-photo">Photo Attached</div>
+            <% } %>
+          </div>
+
+          <% if (currentStatus === 'Approved') { %>
+            <div class="status-stamp stamp-approved">APPROVED</div>
+          <% } else if (currentStatus === 'Rejected') { %>
+            <div class="status-stamp stamp-rejected">REJECTED</div>
+          <% } else { %>
+            <div class="status-stamp stamp-submitted">SUBMITTED</div>
+          <% } %>
+        </div>
+
+      </div>
+
+      <!-- Action: Only Back to Home (No Download or Print for Students) -->
+      <div class="view-actions">
+        <a href="/" class="btn-home-action">&larr; Back to Home</a>
+      </div>
+
+    </div>
+  <% } %>
+
+</main>
+
+<link rel="stylesheet" href="/public/css/status.css">
+
+<%- include('partials/footer') %>

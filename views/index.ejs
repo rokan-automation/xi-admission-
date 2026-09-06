@@ -1,0 +1,21 @@
+<%- include('partials/header', { title: 'Home | Eleventh Admission' }) %>
+
+<main class="hero" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px;">
+  <h1 style="font-size: clamp(24px, 3vw, 38px); font-weight: 800; color: #0f172a; margin-bottom: 14px;">
+    Online Admission for Class XI
+  </h1>
+  <p style="font-size: 16px; color: #475569; max-width: 720px; margin-bottom: 32px; line-height: 1.6;">
+    Apply online for admission to the Department of Science, Business Studies, Humanities, BMT (Digital), and BMT (HRM).
+  </p>
+  
+  <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
+    <a href="/apply" style="padding: 12px 28px; font-size: 15px; font-weight: 600; border-radius: 8px; text-decoration: none; background-color: #1d4ed8; color: #ffffff; transition: 0.2s;">
+      Apply Now
+    </a>
+    <a href="/status" style="padding: 12px 28px; font-size: 15px; font-weight: 600; border-radius: 8px; text-decoration: none; background-color: transparent; color: #1d4ed8; border: 1.5px solid #1d4ed8; transition: 0.2s;">
+      Check Application Status
+    </a>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

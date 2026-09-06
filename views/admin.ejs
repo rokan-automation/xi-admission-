@@ -1,0 +1,1158 @@
+<%- include('partials/header', { title: 'Admin Portal | Admission Register', extraStyles: ['/public/css/admin-page.css?v=4'] }) %>
+
+<!-- Fast Vector PDF Generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+
+<main class="admin-wrapper">
+  
+  <!-- Custom Toast Notification (Auto-Dismiss in 3 Seconds) -->
+  <div id="adminSuccessToast" class="admin-success-toast hidden">
+    <svg class="toast-svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+    </svg>
+    <span id="toastText">Student Admission Approved & Assigned Successfully!</span>
+  </div>
+
+  <% if (typeof updated !== 'undefined' && updated) { %>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        showCustomToast('✓ Student Admission Approved & Assigned Successfully!');
+      });
+    </script>
+  <% } %>
+
+  <div class="admin-topbar no-print">
+    <div>
+      <h2>College Admission & Student Register Desk</h2>
+      <p>Search by <strong>Tracking ID</strong> or <strong>SSC Roll</strong> to process or edit admission.</p>
+    </div>
+    <a href="/admin/logout" class="btn-logout">Logout</a>
+  </div>
+
+  <!-- ================= SECTION 1: SEARCH & ADMISSION APPROVAL FORM ================= -->
+  <div class="search-desk-card no-print">
+    
+    <!-- Search Bar -->
+    <form method="GET" action="/admin/dashboard" class="desk-search-form">
+      <div class="search-box-wrap">
+        <label for="search_query">
+          🔍 Search Student by Tracking ID or SSC Roll:
+        </label>
+        <div class="input-with-btn">
+          <input 
+            type="text" 
+            id="search_query"
+            name="search_query" 
+            value="<%= (typeof search_query !== 'undefined' && search_query) ? search_query : '' %>" 
+            placeholder="Enter Student Tracking ID (e.g. XI-2026-631725) or SSC Roll" 
+            required
+            autocomplete="off"
+          >
+          <button type="submit" class="btn-find">Find &amp; Open Approval Form</button>
+          <button type="button" class="btn-analysis-toggle" onclick="toggleAnalysisPanel()">
+            <span class="btn-analysis-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V10M12 20V4M20 20V14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Admission Analysis
+          </button>
+          <% if (typeof search_query !== 'undefined' && search_query) { %>
+            <a href="/admin/dashboard" class="btn-clear">Show Approved Register</a>
+          <% } %>
+        </div>
+      </div>
+    </form>
+
+    <% if (typeof notFound !== 'undefined' && notFound) { %>
+      <div class="desk-alert-box" style="margin-top:14px; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:10px 14px; border-radius:6px; font-size:13.5px;">
+        <span>⚠️ No student application found matching: "<strong><%= search_query %></strong>". Please re-check the ID or Roll.</span>
+      </div>
+    <% } %>
+
+    <!-- Student Form Processing Panel -->
+    <% if (typeof searchedStudent !== 'undefined' && searchedStudent) { %>
+      <div id="studentApprovalCard" style="margin-top:20px; padding-top:20px; border-top:2px dashed #cbd5e1;">
+        
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:14px 18px; border-radius:8px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="margin:0; color:#1e3a8a; font-size:16px;">Applicant: <strong><%= searchedStudent.full_name_en %></strong> (<%= searchedStudent.full_name_bn || '' %>)</h4>
+            <span style="font-size:13px; color:#475569;">App ID: <strong><%= searchedStudent.application_id %></strong> | SSC Roll: <strong><%= searchedStudent.ssc_roll %></strong> | Board: <strong><%= searchedStudent.ssc_board %></strong> | GPA: <strong><%= searchedStudent.gpa %></strong></span>
+          </div>
+          <span style="background:#fef3c7; color:#92400e; padding:4px 12px; border-radius:12px; font-size:12.5px; font-weight:700; border:1px solid #fde68a;">
+            Status: <%= searchedStudent.status %>
+          </span>
+        </div>
+
+        <form id="approvalForm" method="POST" action="/admin/update-full-application/<%= searchedStudent.id %>">
+          
+          <!-- ALL EXISTING DATA PRESERVED IN HIDDEN FIELDS -->
+          <input type="hidden" name="full_name_en" value="<%= searchedStudent.full_name_en || '' %>">
+          <input type="hidden" name="full_name_bn" value="<%= searchedStudent.full_name_bn || '' %>">
+          <input type="hidden" name="date_of_birth" value="<%= searchedStudent.date_of_birth ? (searchedStudent.date_of_birth.includes('T') ? searchedStudent.date_of_birth.split('T')[0] : searchedStudent.date_of_birth) : '' %>">
+          <input type="hidden" name="father_name_en" value="<%= searchedStudent.father_name_en || '' %>">
+          <input type="hidden" name="father_name_bn" value="<%= searchedStudent.father_name_bn || '' %>">
+          <input type="hidden" name="father_income" value="<%= searchedStudent.father_income || '0' %>">
+          <input type="hidden" name="mother_name_en" value="<%= searchedStudent.mother_name_en || '' %>">
+          <input type="hidden" name="mother_name_bn" value="<%= searchedStudent.mother_name_bn || '' %>">
+          <input type="hidden" name="mother_income" value="<%= searchedStudent.mother_income || '0' %>">
+          <input type="hidden" name="gender" value="<%= searchedStudent.gender || '' %>">
+          <input type="hidden" name="religion" value="<%= searchedStudent.religion || '' %>">
+          <input type="hidden" name="blood_group" value="<%= searchedStudent.blood_group || '' %>">
+          <input type="hidden" name="mobile" value="<%= searchedStudent.mobile || '' %>">
+          <input type="hidden" name="email" value="<%= searchedStudent.email || '' %>">
+          
+          <input type="hidden" name="present_village" value="<%= searchedStudent.present_village || '' %>">
+          <input type="hidden" name="present_post_office" value="<%= searchedStudent.present_post_office || '' %>">
+          <input type="hidden" name="present_thana" value="<%= searchedStudent.present_thana || '' %>">
+          <input type="hidden" name="present_district" value="<%= searchedStudent.present_district || '' %>">
+          <input type="hidden" name="permanent_village" value="<%= searchedStudent.permanent_village || '' %>">
+          <input type="hidden" name="permanent_post_office" value="<%= searchedStudent.permanent_post_office || '' %>">
+          <input type="hidden" name="permanent_thana" value="<%= searchedStudent.permanent_thana || '' %>">
+          <input type="hidden" name="permanent_district" value="<%= searchedStudent.permanent_district || '' %>">
+          
+          <input type="hidden" name="ssc_roll" value="<%= searchedStudent.ssc_roll || '' %>">
+          <input type="hidden" name="ssc_reg" value="<%= searchedStudent.ssc_reg || '' %>">
+          <input type="hidden" name="ssc_board" value="<%= searchedStudent.ssc_board || '' %>">
+          <input type="hidden" name="passing_year" value="<%= searchedStudent.passing_year || '' %>">
+          <input type="hidden" name="gpa" value="<%= searchedStudent.gpa || '' %>">
+          <input type="hidden" name="ssc_group" value="<%= searchedStudent.ssc_group || '' %>">
+          <input type="hidden" name="academic_session" value="<%= searchedStudent.academic_session || '' %>">
+          <input type="hidden" name="activity_category" value="<%= searchedStudent.activity_category || 'None' %>">
+          <input type="hidden" name="photo_url" value="<%= searchedStudent.photo_url || '' %>">
+          <input type="hidden" name="status" value="Approved">
+
+          <!-- Hidden Subjects Input -->
+          <input type="hidden" name="compulsory_subjects" id="approveCompulsoryInput">
+
+          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; padding:20px; border-radius:10px; margin-bottom:16px;">
+            <h5 style="margin:0 0 14px 0; font-size:14px; color:#0f172a; text-transform:uppercase; font-weight:800;">Assign Class Roll, Money Receipt & Group Subjects</h5>
+            
+            <!-- 3 Column Layout (No Blood Group) -->
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; margin-bottom:16px;">
+              <div>
+                <label style="font-size:12.5px; font-weight:700; color:#334155; display:block; margin-bottom:4px;">Class Roll Number *</label>
+                <input type="text" name="class_roll" value="<%= searchedStudent.class_roll || '' %>" placeholder="e.g. 01" required style="width:100%; padding:9.5px 12px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:13.5px; outline:none; box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:12.5px; font-weight:700; color:#334155; display:block; margin-bottom:4px;">Money Receipt Number *</label>
+                <input type="text" name="receipt_no" value="<%= searchedStudent.receipt_no || '' %>" placeholder="e.g. 12345" required style="width:100%; padding:9.5px 12px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:13.5px; outline:none; box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:12.5px; font-weight:700; color:#334155; display:block; margin-bottom:4px;">Admission Group *</label>
+                <select name="group_name" id="approve_group_name" onchange="renderApprovalSubjects(this.value)" required style="width:100%; padding:9.5px 12px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:13.5px; outline:none; box-sizing:border-box; background:#ffffff;">
+                  <option value="Science" <%= searchedStudent.group_name === 'Science' ? 'selected' : '' %>>Science</option>
+                  <option value="Humanities" <%= searchedStudent.group_name === 'Humanities' ? 'selected' : '' %>>Humanities</option>
+                  <option value="Business Studies" <%= searchedStudent.group_name === 'Business Studies' ? 'selected' : '' %>>Business Studies</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Compulsory Subjects -->
+            <div class="compulsory-card" style="background:#ffffff; border:1px solid #cbd5e1; padding:12px; border-radius:8px; margin-bottom:14px;">
+              <span style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:6px;">Compulsory Subjects (Automatic):</span>
+              <div id="approvalCompulsoryChips" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+            </div>
+
+            <!-- Dynamic Elective & 4th Subjects UI -->
+            <div id="approvalDynamicSubjects" style="background:#ffffff; border:1px solid #cbd5e1; padding:14px; border-radius:8px;"></div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:12px;">
+            <a href="/admin/dashboard" class="btn-cancel" style="text-decoration:none;">Cancel</a>
+            <button type="submit" id="approveSubmitBtn" class="btn-action-primary" style="background:#10b981;">
+              ✓ Save Admission Data & Move to Approved Register
+            </button>
+          </div>
+        </form>
+
+      </div>
+    <% } %>
+
+  </div>
+
+  <!-- ================= ADMISSION ANALYSIS ================= -->
+  <% const A = (typeof analytics !== 'undefined' && analytics) ? analytics : { totalByGroup: {}, approvedByGroup: {}, electiveCounts: {}, fourthSubjectCounts: {}, pendingByGroup: {} }; %>
+  <% const groupOrder = ['Science', 'Humanities', 'Business Studies']; %>
+  <% const allGroupKeys = Array.from(new Set([...groupOrder, ...Object.keys(A.totalByGroup || {})])); %>
+
+  <% const svgChart = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V10M12 20V4M20 20V14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; %>
+  <% const svgFlask = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 3h6M10 3v5.2c0 .4-.1.8-.4 1.1L5.6 15c-1.4 1.7-.2 4.3 2 4.3h8.8c2.2 0 3.4-2.6 2-4.3l-4-5.7c-.3-.3-.4-.7-.4-1.1V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 14.5h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'; %>
+  <% const svgBook = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5c-.8 0-1.5-.7-1.5-1.5v-13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5v-13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'; %>
+  <% const svgBriefcase = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8V6.5C8 5.1 9.1 4 10.5 4h3C14.9 4 16 5.1 16 6.5V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 13h18" stroke="currentColor" stroke-width="2"/></svg>'; %>
+  <% const svgCap = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4 2 9l10 5 10-5-10-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'; %>
+  <% const groupIcons = { 'Science': svgFlask, 'Humanities': svgBook, 'Business Studies': svgBriefcase }; %>
+  <% const groupAccent = { 'Science': 'accent-blue', 'Humanities': 'accent-amber', 'Business Studies': 'accent-purple' }; %>
+
+  <!-- Defines the official elective "clusters" so subjects are shown grouped & in serial order, not just sorted by count -->
+  <% const electiveGroupDefs = {
+    'Humanities': [
+      ['Economics (109, 110)', 'Civics & Good Governance (269, 270)'],
+      ['Islamic History & Culture (267, 268)', 'Sociology (117, 118)', 'Social Work (271, 272)'],
+      ['Geography (125, 126)', 'Logic (121, 122)']
+    ],
+    'Science': [
+      ['Physics (174, 175)'],
+      ['Chemistry (176, 177)'],
+      ['Higher Mathematics (265, 266)', 'Biology (178, 179)']
+    ],
+    'Business Studies': [
+      ['Accounting (253, 254)'],
+      ['Business Organization & Management (277, 278)'],
+      ['Production Management & Marketing (286, 287)']
+    ]
+  }; %>
+
+  <div class="analysis-section no-print" id="admissionAnalysisPanel" style="display:none;">
+    <div class="analysis-header">
+      <div class="analysis-header-icon-badge"><%- svgChart %></div>
+      <div>
+        <h4>Admission Analysis</h4>
+        <p class="analysis-subtitle">Overview of total applications, approvals, and subject selections by group.</p>
+      </div>
+    </div>
+
+    <div class="analysis-summary-grid">
+      <% allGroupKeys.forEach(function(g) { %>
+        <% if ((A.totalByGroup && A.totalByGroup[g]) || (A.approvedByGroup && A.approvedByGroup[g])) { %>
+          <% const total = (A.totalByGroup && A.totalByGroup[g]) || 0; %>
+          <% const approved = (A.approvedByGroup && A.approvedByGroup[g]) || 0; %>
+          <% const pct = total > 0 ? Math.round((approved / total) * 100) : 0; %>
+          <div class="stat-card <%= groupAccent[g] || 'accent-blue' %>">
+            <div class="stat-card-head">
+              <div class="stat-icon-badge"><%- groupIcons[g] || svgCap %></div>
+              <div class="stat-group-name"><%= g %></div>
+            </div>
+            <div class="stat-numbers-row">
+              <div class="stat-block">
+                <span class="stat-value"><%= total %></span>
+                <span class="stat-label">Total</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-block">
+                <span class="stat-value stat-value-green"><%= approved %></span>
+                <span class="stat-label">Approved</span>
+              </div>
+            </div>
+            <div class="stat-progress-track">
+              <div class="stat-progress-fill" style="width: <%= pct %>%;"></div>
+            </div>
+            <div class="stat-progress-caption"><%= pct %>% approved</div>
+
+            <% const pendingList = (A.pendingByGroup && A.pendingByGroup[g]) || []; %>
+            <% if (pendingList.length) { %>
+              <div class="pending-block">
+                <div class="pending-block-title">Pending (<%= pendingList.length %>)</div>
+                <% pendingList.forEach(function(p) { %>
+                  <div class="pending-row">
+                    <div class="pending-field">
+                      <span class="pending-appid"><%= p.application_id %></span>
+                      <button type="button" class="copy-btn" onclick="copyPendingValue(this, '<%= p.application_id %>')" title="Copy Tracking ID">⧉</button>
+                    </div>
+                    <div class="pending-field">
+                      <span class="pending-roll-label">S.S.C Roll:</span>
+                      <span class="pending-roll"><%= p.ssc_roll %></span>
+                      <button type="button" class="copy-btn" onclick="copyPendingValue(this, '<%= p.ssc_roll %>')" title="Copy S.S.C Roll">⧉</button>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+          </div>
+        <% } %>
+      <% }); %>
+    </div>
+
+    <div class="analysis-subject-grid">
+      <% allGroupKeys.forEach(function(g) { %>
+        <% const electives = (A.electiveCounts && A.electiveCounts[g]) || {}; %>
+        <% const fourths = (A.fourthSubjectCounts && A.fourthSubjectCounts[g]) || {}; %>
+        <% if (Object.keys(electives).length || Object.keys(fourths).length) { %>
+          <div class="subject-card <%= groupAccent[g] || 'accent-blue' %>">
+            <div class="subject-card-head">
+              <div class="stat-icon-badge small"><%- groupIcons[g] || svgCap %></div>
+              <div class="stat-group-name"><%= g %></div>
+            </div>
+
+            <% if (Object.keys(electives).length) { %>
+              <% const maxE = Math.max(...Object.values(electives)); %>
+              <div class="subject-block-title">Elective Subjects</div>
+              <% const defs = electiveGroupDefs[g]; %>
+              <% if (defs) { %>
+                <% const usedNames = defs.flat(); %>
+                <% defs.forEach(function(cluster) { %>
+                  <% const clusterSubs = cluster.filter(function(name) { return electives.hasOwnProperty(name); }); %>
+                  <% if (clusterSubs.length) { %>
+                    <div class="subject-cluster">
+                      <% clusterSubs.forEach(function(sub) { %>
+                        <div class="subject-row">
+                          <div class="subject-row-top">
+                            <span class="subject-name"><%= sub %></span>
+                            <span class="subject-count"><%= electives[sub] %></span>
+                          </div>
+                          <div class="subject-bar-track"><div class="subject-bar-fill" style="width: <%= Math.round((electives[sub]/maxE)*100) %>%;"></div></div>
+                        </div>
+                      <% }); %>
+                    </div>
+                  <% } %>
+                <% }); %>
+                <% const leftover = Object.keys(electives).filter(function(k) { return usedNames.indexOf(k) === -1; }).sort(function(a, b) { return electives[b] - electives[a]; }); %>
+                <% leftover.forEach(function(sub) { %>
+                  <div class="subject-row">
+                    <div class="subject-row-top">
+                      <span class="subject-name"><%= sub %></span>
+                      <span class="subject-count"><%= electives[sub] %></span>
+                    </div>
+                    <div class="subject-bar-track"><div class="subject-bar-fill" style="width: <%= Math.round((electives[sub]/maxE)*100) %>%;"></div></div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <% Object.keys(electives).sort((a, b) => electives[b] - electives[a]).forEach(function(sub) { %>
+                  <div class="subject-row">
+                    <div class="subject-row-top">
+                      <span class="subject-name"><%= sub %></span>
+                      <span class="subject-count"><%= electives[sub] %></span>
+                    </div>
+                    <div class="subject-bar-track"><div class="subject-bar-fill" style="width: <%= Math.round((electives[sub]/maxE)*100) %>%;"></div></div>
+                  </div>
+                <% }); %>
+              <% } %>
+            <% } %>
+
+            <% if (Object.keys(fourths).length) { %>
+              <% const maxF = Math.max(...Object.values(fourths)); %>
+              <div class="subject-block-title" style="margin-top:10px;">4th Subject</div>
+              <% Object.keys(fourths).sort((a, b) => fourths[b] - fourths[a]).forEach(function(sub) { %>
+                <div class="subject-row">
+                  <div class="subject-row-top">
+                    <span class="subject-name"><%= sub %></span>
+                    <span class="subject-count subject-count-alt"><%= fourths[sub] %></span>
+                  </div>
+                  <div class="subject-bar-track"><div class="subject-bar-fill subject-bar-fill-alt" style="width: <%= Math.round((fourths[sub]/maxF)*100) %>%;"></div></div>
+                </div>
+              <% }); %>
+            <% } %>
+          </div>
+        <% } %>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- ================= SECTION 2: APPROVED STUDENTS REGISTER TABLE ================= -->
+  <% const approvedList = (typeof approvedApplications !== 'undefined' && Array.isArray(approvedApplications)) ? approvedApplications : []; %>
+  <% const curGroup = typeof group_name !== 'undefined' ? group_name : 'all'; %>
+  <% const isSearchMode = typeof search_query !== 'undefined' && search_query; %>
+
+  <% if (!isSearchMode) { %>
+  <div class="overview-section no-print" id="approvedRegisterSection">
+    <div class="overview-header">
+      <div>
+        <h4>🎓 Approved Students Register (Admitted)</h4>
+        <p style="font-size: 13px; color: #64748b; margin-top: 2px;">Official record of enrolled Class XI students.</p>
+      </div>
+      
+      <div class="overview-header-controls">
+        <form method="GET" action="/admin/dashboard" class="mini-filter-form">
+          <select name="group" id="groupFilterSelect" onchange="this.form.submit()">
+            <option value="all" <%= curGroup==='all'?'selected':'' %>>All Groups</option>
+            <option value="Science" <%= curGroup==='Science'?'selected':'' %>>Science</option>
+            <option value="Humanities" <%= curGroup==='Humanities'?'selected':'' %>>Humanities</option>
+            <option value="Business Studies" <%= curGroup==='Business Studies'?'selected':'' %>>Business Studies</option>
+          </select>
+        </form>
+
+        <button type="button" class="btn-download-photos" onclick="downloadGroupPhotos()">
+          <span class="btn-download-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          Download Photos (ZIP)
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Roll</th>
+            <th>Receipt No</th>
+            <th>App ID</th>
+            <th>Student Name</th>
+            <th>Group</th>
+            <th>GPA</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% approvedList.forEach(app => { %>
+          <% const encApp = encodeURIComponent(JSON.stringify(app)); %>
+          <tr>
+            <td><span class="roll-pill"><%= app.class_roll || 'Pending' %></span></td>
+            <td><strong><%= app.receipt_no || '-' %></strong></td>
+            <td class="bold-id"><%= app.application_id %></td>
+            <td><%= app.full_name_en %></td>
+            <td><span class="group-tag"><%= app.group_name %></span></td>
+            <td><%= app.gpa %></td>
+            <td class="action-cell">
+              <button type="button" class="btn-tbl btn-view" onclick="handleViewClick('<%= encApp %>')">📄 View</button>
+              <button type="button" class="btn-tbl btn-edit" onclick="handleEditClick('<%= encApp %>')">Edit</button>
+              <button type="button" class="btn-tbl btn-pdf" onclick="handlePdfClick('<%= encApp %>')">PDF</button>
+              <button type="button" class="btn-tbl btn-del" onclick="promptDelete('<%= app.id %>', '<%= app.full_name_en %>')">Delete</button>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (approvedList.length === 0) { %>
+            <tr>
+              <td colspan="7" class="no-records">No approved students found.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } %>
+
+</main>
+
+<!-- ================= OFFICIAL FORM PREVIEW MODAL ================= -->
+<div id="officialFormPreviewModal" class="custom-modal-overlay">
+  <div class="custom-modal-card preview-modal-card">
+    <div class="modal-header no-print">
+      <div>
+        <h3 style="margin: 0; color: #1e3a8a; font-size: 18px;">Official Admission Form Preview</h3>
+        <span style="font-size: 12.5px; color: #64748b;">Read-only view. Click Edit to change any data.</span>
+      </div>
+      <button type="button" class="close-modal-btn" onclick="closeOfficialPreview()">&times;</button>
+    </div>
+    <div class="modal-body-scroll" id="officialFormModalContent"></div>
+    <div class="modal-footer no-print">
+      <button type="button" class="btn-cancel" onclick="closeOfficialPreview()">Close Preview</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= COMPLETE APPLICATION EDIT MODAL ================= -->
+<div id="fullEditModal" class="custom-modal-overlay">
+  <div class="custom-modal-card full-edit-card">
+    
+    <div class="modal-header">
+      <div>
+        <h3 style="margin: 0; color: #1e3a8a; font-size: 19px;">Edit & Assign Admission Record</h3>
+        <p id="editModalSubTitle" style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;">Modify applicant data, assign Class Roll, Receipt No, and Subjects.</p>
+      </div>
+      <button type="button" class="close-modal-btn" onclick="closeFullEditModal()">&times;</button>
+    </div>
+
+    <form id="fullEditForm" method="POST" action="">
+      <input type="hidden" name="search_query" id="editFormSearchQuery">
+      <input type="hidden" name="activity_category" id="editActivityCategoryHidden">
+      
+      <div class="modal-body-scroll" style="max-height: 74vh; padding: 24px;">
+        
+        <div class="edit-section-header">1. Personal Information</div>
+        <div class="edit-grid-3">
+          <div class="edit-field"><label>Full Name (English) *</label><input type="text" name="full_name_en" id="edit_full_name_en" required></div>
+          <div class="edit-field"><label>Full Name (Bangla) *</label><input type="text" name="full_name_bn" id="edit_full_name_bn" required></div>
+          <div class="edit-field"><label>Date of Birth *</label><input type="date" name="date_of_birth" id="edit_date_of_birth" required></div>
+
+          <div class="edit-field"><label>Father's Name (English) *</label><input type="text" name="father_name_en" id="edit_father_name_en" required></div>
+          <div class="edit-field"><label>Father's Name (Bangla) *</label><input type="text" name="father_name_bn" id="edit_father_name_bn" required></div>
+          <div class="edit-field"><label>Father's Monthly Income *</label><input type="number" name="father_income" id="edit_father_income" required></div>
+
+          <div class="edit-field"><label>Mother's Name (English) *</label><input type="text" name="mother_name_en" id="edit_mother_name_en" required></div>
+          <div class="edit-field"><label>Mother's Name (Bangla) *</label><input type="text" name="mother_name_bn" id="edit_mother_name_bn" required></div>
+          <div class="edit-field"><label>Mother's Monthly Income *</label><input type="number" name="mother_income" id="edit_mother_income" required></div>
+
+          <div class="edit-field">
+            <label>Gender *</label>
+            <select name="gender" id="edit_gender" required>
+              <option value="">-- Select Gender * --</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>Religion *</label>
+            <select name="religion" id="edit_religion" required>
+              <option value="">-- Select Religion * --</option>
+              <option value="Islam">Islam</option>
+              <option value="Hinduism">Hinduism</option>
+              <option value="Christianity">Christianity</option>
+              <option value="Buddhism">Buddhism</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>Blood Group *</label>
+            <select name="blood_group" id="edit_blood_group" required>
+              <option value="">-- Select Blood Group * --</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+          </div>
+
+          <div class="edit-field"><label>Mobile Number *</label><input type="text" name="mobile" id="edit_mobile" maxlength="11" required></div>
+          <div class="edit-field"><label>Email Address (Optional)</label><input type="email" name="email" id="edit_email"></div>
+        </div>
+
+        <div class="edit-section-header" style="margin-top: 24px;">2. Address Information</div>
+        <div class="edit-grid-2">
+          <div class="address-block">
+            <strong>Present Address:</strong>
+            <div class="edit-grid-2" style="margin-top: 8px;">
+              <div class="edit-field"><label>Village / Road *</label><input type="text" name="present_village" id="edit_present_village" required></div>
+              <div class="edit-field"><label>Post Office *</label><input type="text" name="present_post_office" id="edit_present_post" required></div>
+              <div class="edit-field"><label>Upazila / Thana *</label><input type="text" name="present_thana" id="edit_present_thana" required></div>
+              <div class="edit-field"><label>District *</label><input type="text" name="present_district" id="edit_present_dist" required></div>
+            </div>
+          </div>
+          <div class="address-block">
+            <strong>Permanent Address:</strong>
+            <div class="edit-grid-2" style="margin-top: 8px;">
+              <div class="edit-field"><label>Village / Road *</label><input type="text" name="permanent_village" id="edit_permanent_village" required></div>
+              <div class="edit-field"><label>Post Office *</label><input type="text" name="permanent_post_office" id="edit_permanent_post" required></div>
+              <div class="edit-field"><label>Upazila / Thana *</label><input type="text" name="permanent_thana" id="edit_permanent_thana" required></div>
+              <div class="edit-field"><label>District *</label><input type="text" name="permanent_district" id="edit_permanent_dist" required></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="edit-section-header" style="margin-top: 24px;">3. SSC Academic Information</div>
+        <div class="edit-grid-3">
+          <div class="edit-field"><label>SSC Roll Number *</label><input type="text" name="ssc_roll" id="edit_ssc_roll" required></div>
+          <div class="edit-field"><label>SSC Reg Number *</label><input type="text" name="ssc_reg" id="edit_ssc_reg" required></div>
+          <div class="edit-field"><label>Education Board *</label><input type="text" name="ssc_board" id="edit_ssc_board" required></div>
+          <div class="edit-field"><label>Passing Year *</label><input type="number" name="passing_year" id="edit_passing_year" required></div>
+          <div class="edit-field"><label>SSC GPA *</label><input type="number" step="0.01" name="gpa" id="edit_gpa" required></div>
+          <div class="edit-field">
+            <label>SSC Group *</label>
+            <select name="ssc_group" id="edit_ssc_group" required>
+              <option value="Science">Science</option><option value="Business Studies">Business Studies</option><option value="Humanities">Humanities</option><option value="Madrasah / Dakhil">Madrasah / Dakhil</option><option value="Vocational">Vocational</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="edit-section-header" style="margin-top: 24px; color: #16a34a;">4. Class XI Admission, Roll & Subject Allocation</div>
+        <div class="edit-grid-4">
+          <div class="edit-field"><label>Class Roll *</label><input type="text" name="class_roll" id="edit_class_roll" placeholder="e.g. 101" required></div>
+          <div class="edit-field"><label>Money Receipt No *</label><input type="text" name="receipt_no" id="edit_receipt_no" placeholder="e.g. REC-8921" required></div>
+          <div class="edit-field">
+            <label>Admission Group *</label>
+            <select name="group_name" id="edit_group_name" onchange="renderEditSubjects(this.value)" required>
+              <option value="Science">Science</option>
+              <option value="Humanities">Humanities</option>
+              <option value="Business Studies">Business Studies</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>Application Status *</label>
+            <select name="status" id="edit_status" required>
+              <option value="Approved">Approved</option>
+              <option value="Submitted">Submitted</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="compulsory-card" style="margin-top: 14px;">
+          <span class="comp-title">Compulsory Subjects:</span>
+          <div class="chips-container" id="editCompulsoryChips"></div>
+          <input type="hidden" name="compulsory_subjects" id="editCompulsoryInput">
+        </div>
+        <div id="editDynamicSubjects" style="margin-top: 14px;"></div>
+
+        <div class="edit-section-header" style="margin-top: 24px;">5. Co-Curricular Activities</div>
+        <div class="activity-container" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:8px; padding:16px;">
+          <div class="activity-group">
+            <span class="activity-title">🎵 Music:</span>
+            <div class="activity-chips">
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Modern Song"> Modern Song</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Rabindra Sangeet"> Rabindra Sangeet</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Nazrul Geeti"> Nazrul Geeti</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Folk Song"> Folk Song</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Bhawaiya"> Bhawaiya</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Islamic Song"> Islamic Song</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Kirtan"> Kirtan</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Other Music"> Other Music</label>
+            </div>
+          </div>
+          <div class="activity-group" style="margin-top: 12px;">
+            <span class="activity-title">⚽ Sports:</span>
+            <div class="activity-chips">
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Football"> Football</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Cricket"> Cricket</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Volleyball"> Volleyball</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Athletics"> Athletics</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Other Sports"> Other Sports</label>
+            </div>
+          </div>
+          <div class="activity-group" style="margin-top: 12px;">
+            <span class="activity-title">🎭 Cultural:</span>
+            <div class="activity-chips">
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Debate"> Debate</label>
+              <label class="chip"><input type="checkbox" class="edit-act-cb" value="Dance"> Dance</label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeFullEditModal()">Cancel</button>
+        <button type="submit" id="saveEditSubmitBtn" class="btn-action-primary">✓ Save All Changes & Update Database</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- ================= DELETE CONFIRMATION MODAL ================= -->
+<div id="deleteWarningModal" class="custom-modal-overlay">
+  <div class="custom-modal-card warning-card">
+    <div class="warning-icon-box">⚠️</div>
+    <h3>Delete Admission Record?</h3>
+    <p>Are you sure you want to permanently delete the admission record of <strong id="deleteStudentName">-</strong>?</p>
+    <form id="deleteForm" method="POST" action="">
+      <div class="modal-footer-warning">
+        <button type="button" class="btn-cancel-del" onclick="closeDeleteModal()">Cancel</button>
+        <button type="submit" class="btn-confirm-del">Yes, Delete Permanently</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- FIXED PDF ENGINE CONTAINER -->
+<div id="pdfEngineContainer" style="position: fixed; top: 0; left: 0; z-index: -9999; opacity: 0; pointer-events: none; width: 210mm; overflow: hidden;"></div>
+
+<script>
+  // CUSTOM TOAST NOTIFICATION HANDLER
+  let toastTimer = null;
+  function showCustomToast(message, isError = false) {
+    const toast = document.getElementById('adminSuccessToast');
+    const toastText = document.getElementById('toastText');
+    if (!toast || !toastText) return;
+
+    toastText.innerText = message;
+    toast.style.backgroundColor = isError ? '#EF4444' : '#10B981';
+    toast.classList.remove('hidden');
+
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 3000);
+  }
+
+  // STRICT CLIENT-SIDE VALIDATION
+  function validateFormStrict(formElement) {
+    if (!formElement) return true;
+    const inputs = formElement.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), select');
+    let isValid = true;
+    let firstInvalidInput = null;
+
+    inputs.forEach(input => {
+      if (input.name === 'email' || input.disabled) return; 
+
+      const val = input.value ? input.value.trim() : '';
+      if (!val || val === '' || val.startsWith('-- Select')) {
+        isValid = false;
+        input.style.border = '2px solid #ef4444';
+        input.style.backgroundColor = '#fef2f2';
+        if (!firstInvalidInput) firstInvalidInput = input;
+      } else {
+        input.style.border = '1.5px solid #cbd5e1';
+        input.style.backgroundColor = '#ffffff';
+      }
+    });
+
+    if (!isValid && firstInvalidInput) {
+      firstInvalidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInvalidInput.focus();
+      showCustomToast('⚠️ Please fill in all required fields. Only Email is optional!', true);
+    }
+
+    return isValid;
+  }
+
+  // EXACT SUBJECT CATALOG RULES
+  const subjectCatalog = {
+    Compulsory: ['Bangla (101, 102)', 'English (107, 108)', 'Information & Communication Technology [ICT] (275)'],
+    Science: {
+      fixedElectives: ['Physics (174, 175)', 'Chemistry (176, 177)']
+    },
+    Humanities: {
+      electives: [
+        { label: 'Elective Subject 1 *', options: ['Economics (109, 110)', 'Civics & Good Governance (269, 270)'] },
+        { label: 'Elective Subject 2 *', options: ['Islamic History & Culture (267, 268)', 'Sociology (117, 118)', 'Social Work (271, 272)'] },
+        { label: 'Elective Subject 3 *', options: ['Geography (125, 126)', 'Logic (121, 122)'] }
+      ],
+      fourthSubjects: ['Agricultural Studies (239, 240)', 'Islamic Studies (249, 250)', 'Home Science (273, 274)', 'Psychology (123, 124)']
+    },
+    BusinessStudies: {
+      fixedElectives: ['Accounting (253, 254)', 'Business Organization & Management (277, 278)', 'Production Management & Marketing (286, 287)'],
+      fourthSubjects: ['Agricultural Studies (239, 240)', 'Economics (109, 110)', 'Home Science (273, 274)', 'Statistics (129, 130)']
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const groupSelect = document.getElementById('approve_group_name');
+    if (groupSelect) {
+      renderApprovalSubjects(groupSelect.value);
+    }
+
+    const approvalForm = document.getElementById('approvalForm');
+    if (approvalForm) {
+      approvalForm.addEventListener('submit', function(e) {
+        if (!validateFormStrict(this)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        const btn = document.getElementById('approveSubmitBtn');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Saving Admission & Updating Register...';
+        }
+      });
+    }
+
+    const fullEditForm = document.getElementById('fullEditForm');
+    if (fullEditForm) {
+      fullEditForm.addEventListener('submit', function(e) {
+        if (!validateFormStrict(this)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        const checkedBoxes = Array.from(document.querySelectorAll('#fullEditModal .edit-act-cb:checked')).map(cb => cb.value);
+        document.getElementById('editActivityCategoryHidden').value = checkedBoxes.length > 0 ? checkedBoxes.join(', ') : 'None';
+        const btn = document.getElementById('saveEditSubmitBtn');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Saving Changes...';
+        }
+      });
+    }
+  });
+
+  function renderApprovalSubjects(group) {
+    const compContainer = document.getElementById('approvalCompulsoryChips');
+    const dynamicContainer = document.getElementById('approvalDynamicSubjects');
+    const compInput = document.getElementById('approveCompulsoryInput');
+
+    if (!compContainer || !dynamicContainer || !compInput) return;
+
+    compContainer.innerHTML = subjectCatalog.Compulsory.map(sub => `<span class="sub-badge">✓ ${sub}</span>`).join('');
+    compInput.value = subjectCatalog.Compulsory.join(', ');
+    dynamicContainer.innerHTML = '';
+
+    if (group === 'Science') {
+      dynamicContainer.innerHTML = `
+        <div style="margin-bottom:12px;">
+          <label style="font-weight:700; color:#334155; font-size:12.5px; display:block; margin-bottom:6px;">Elective Subjects (3 Required):</label>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; background:#f1f5f9; padding:10px 14px; border-radius:6px; border:1px solid #cbd5e1; margin-bottom:12px;">
+            <label style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" checked disabled style="width:16px; height:16px;"> Physics (174, 175)
+              <input type="hidden" name="elective_subjects" value="Physics (174, 175)">
+            </label>
+            <label style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" checked disabled style="width:16px; height:16px;"> Chemistry (176, 177)
+              <input type="hidden" name="elective_subjects" value="Chemistry (176, 177)">
+            </label>
+          </div>
+        </div>
+        <div class="edit-grid-2">
+          <div class="edit-field">
+            <label>Elective Subject 3 (Major) *</label>
+            <select name="elective_subjects" id="appSciElective" onchange="syncAppScience(this.value)" required>
+              <option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option>
+              <option value="Biology (178, 179)">Biology (178, 179)</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>4th Subject *</label>
+            <select name="fourth_subject" id="appSciFourth" required>
+              <option value="Biology (178, 179)">Biology (178, 179)</option>
+              <option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option>
+            </select>
+          </div>
+        </div>`;
+    } else if (group === 'Humanities') {
+      let html = `
+        <div style="margin-bottom:12px;">
+          <label style="font-weight:700; color:#334155; font-size:12.5px; display:block; margin-bottom:6px;">Elective Subjects (Choose 1 from each group - Total 3 Subjects):</label>
+          <div class="edit-grid-3">`;
+      subjectCatalog.Humanities.electives.forEach(el => {
+        html += `<div class="edit-field"><label>${el.label}</label><select name="elective_subjects" required>${el.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select></div>`;
+      });
+      html += `</div></div>
+        <div class="edit-field" style="margin-top:12px;">
+          <label>4th Subject *</label>
+          <select name="fourth_subject" required>${subjectCatalog.Humanities.fourthSubjects.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select>
+        </div>`;
+      dynamicContainer.innerHTML = html;
+    } else {
+      dynamicContainer.innerHTML = `
+        <div style="margin-bottom:12px;">
+          <label style="font-weight:700; color:#334155; font-size:12.5px; display:block; margin-bottom:6px;">Elective Subjects (All 3 Compulsory):</label>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; background:#f1f5f9; padding:10px 14px; border-radius:6px; border:1px solid #cbd5e1; margin-bottom:12px;">
+            <label style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" checked disabled style="width:16px; height:16px;"> Accounting (253, 254)
+              <input type="hidden" name="elective_subjects" value="Accounting (253, 254)">
+            </label>
+            <label style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" checked disabled style="width:16px; height:16px;"> Business Organization & Management (277, 278)
+              <input type="hidden" name="elective_subjects" value="Business Organization & Management (277, 278)">
+            </label>
+            <label style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" checked disabled style="width:16px; height:16px;"> Production Management & Marketing (286, 287)
+              <input type="hidden" name="elective_subjects" value="Production Management & Marketing (286, 287)">
+            </label>
+          </div>
+        </div>
+        <div class="edit-field" style="margin-top:12px;">
+          <label>4th Subject *</label>
+          <select name="fourth_subject" required>${subjectCatalog.BusinessStudies.fourthSubjects.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select>
+        </div>
+      `;
+    }
+  }
+
+  function syncAppScience(val) {
+    const fourthSelect = document.getElementById('appSciFourth');
+    if (fourthSelect) {
+      fourthSelect.value = val.includes('Higher Mathematics') ? 'Biology (178, 179)' : 'Higher Mathematics (265, 266)';
+    }
+  }
+
+  // Safe Decoders
+  function handleEditClick(encodedApp) {
+    try {
+      const app = JSON.parse(decodeURIComponent(encodedApp));
+      openFullEditModal(app);
+    } catch(e) { console.error(e); }
+  }
+
+  function handleViewClick(encodedApp) {
+    try {
+      const app = JSON.parse(decodeURIComponent(encodedApp));
+      openOfficialFormPreview(app);
+    } catch(e) { console.error(e); }
+  }
+
+  function handlePdfClick(encodedApp) {
+    try {
+      const app = JSON.parse(decodeURIComponent(encodedApp));
+      triggerDirectPDF(app);
+    } catch(e) { console.error(e); }
+  }
+
+  // OFFICIAL FORM PREVIEW MODAL
+  function openOfficialFormPreview(app) {
+    const container = document.getElementById('officialFormModalContent');
+    const photoHtml = app.photo_url 
+      ? `<img src="${app.photo_url}" loading="lazy" width="130" height="155" style="width:130px; height:155px; object-fit:cover; border:1.5px solid #cbd5e1; border-radius:4px;" crossorigin="anonymous">`
+      : `<div style="width:130px; height:155px; border:1.5px solid #cbd5e1; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8; background:#f8fafc; border-radius:4px;">Photo Attached</div>`;
+
+    container.innerHTML = `
+      <div style="border: 2px solid #1e3a8a; padding: 22px 26px; border-radius: 4px; background:#ffffff;">
+        <div style="text-align:center; border-bottom:2px solid #1e3a8a; padding-bottom:10px; margin-bottom:14px;">
+          <h1 style="margin:0; color:#1e3a8a; font-size:25px; text-transform:uppercase; font-weight:800; font-family:'Times New Roman', serif;">Birganj Govt. College</h1>
+          <p style="margin:2px 0 0 0; font-size:14px; font-style:italic; font-weight:600; color:#475569;">Birganj, Dinajpur</p>
+          <div style="margin-top:5px; display:inline-block; background:#eff6ff; border:1px solid #bfdbfe; padding:3px 14px; border-radius:4px; font-size:12.5px; font-weight:800; color:#1e3a8a;">Higher Secondary (Class XI) Official Admission Form</div>
+          <p style="margin:3px 0 0 0; font-size:11.5px; color:#64748b;">Academic Session: ${app.academic_session || '2026-2027'} | Official College Record</p>
+        </div>
+
+        <div style="background:#ecfdf5; border:1px solid #a7f3d0; padding:8px 16px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:13px;">
+          <div>Tracking ID: <strong style="color:#1d4ed8; font-family:monospace; font-size:14px;">${app.application_id}</strong></div>
+          <div>Status: <strong style="color:#059669;">✓ ADMISSION APPROVED</strong></div>
+          <div>Class Roll: <strong style="background:#059669; color:#ffffff; padding:2px 10px; border-radius:10px; font-size:13.5px;">${app.class_roll || 'Pending'}</strong></div>
+          <div>Fee Receipt No: <strong style="color:#0f172a;">${app.receipt_no || 'Paid'}</strong></div>
+        </div>
+
+        <div style="display:flex; gap:18px;">
+          <div style="flex:1;">
+            
+            <h4 style="font-size:13px; font-weight:800; color:#1e3a8a; border-bottom:1.5px solid #cbd5e1; padding-bottom:3px; margin:0 0 5px 0;">1. PERSONAL INFORMATION</h4>
+            <table style="width:100%; font-size:12.5px; line-height:1.8; border-collapse:collapse;">
+              <tr><td style="width:38%; color:#64748b; font-weight:600;">Full Name (English):</td><td><strong>${app.full_name_en || '-'}</strong></td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Full Name (Bangla):</td><td><strong>${app.full_name_bn || '-'}</strong></td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Father's Name (English):</td><td>${app.father_name_en || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Father's Name (Bangla):</td><td>${app.father_name_bn || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Father's Monthly Income:</td><td>BDT ${app.father_income || '0'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Mother's Name (English):</td><td>${app.mother_name_en || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Mother's Name (Bangla):</td><td>${app.mother_name_bn || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Mother's Monthly Income:</td><td>BDT ${app.mother_income || '0'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Date of Birth & Gender:</td><td>${app.date_of_birth || '-'} | ${app.gender || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Religion & Blood Group:</td><td>${app.religion || '-'} | ${app.blood_group || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Mobile Number:</td><td>${app.mobile || '-'}</td></tr>
+            </table>
+
+            <h4 style="font-size:13px; font-weight:800; color:#1e3a8a; border-bottom:1.5px solid #cbd5e1; padding-bottom:3px; margin:10px 0 5px 0;">2. ADDRESS INFORMATION</h4>
+            <table style="width:100%; font-size:12px; line-height:1.75; border-collapse:collapse;">
+              <tr><td style="width:38%; color:#64748b; font-weight:600;">Present Address:</td><td>${app.present_village || '-'}, PO: ${app.present_post_office || '-'}, Upazila: ${app.present_thana || '-'}, Dist: ${app.present_district || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Permanent Address:</td><td>${app.permanent_village || '-'}, PO: ${app.permanent_post_office || '-'}, Upazila: ${app.permanent_thana || '-'}, Dist: ${app.permanent_district || '-'}</td></tr>
+            </table>
+
+            <h4 style="font-size:13px; font-weight:800; color:#1e3a8a; border-bottom:1.5px solid #cbd5e1; padding-bottom:3px; margin:10px 0 5px 0;">3. ACADEMIC & ALLOCATED SUBJECTS</h4>
+            <table style="width:100%; font-size:12.5px; line-height:1.8; border-collapse:collapse;">
+              <tr><td style="width:38%; color:#64748b; font-weight:600;">SSC Roll & Reg:</td><td>Roll: ${app.ssc_roll || '-'} | Reg: ${app.ssc_reg || '-'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Board & Passing Year:</td><td>${app.ssc_board || '-'} Board | ${app.passing_year || '-'} (GPA: <strong>${app.gpa || '-'}</strong>)</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Enrolled Group:</td><td><strong style="color:#b45309; background:#fef3c7; padding:2px 8px; border-radius:3px;">${app.group_name || '-'}</strong></td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Compulsory Subjects:</td><td>${app.compulsory_subjects || 'Default Core Subjects'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Elective Subjects:</td><td>${app.elective_subjects || 'Assigned'}</td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">4th Subject:</td><td><strong>${app.fourth_subject || 'Assigned'}</strong></td></tr>
+              <tr><td style="color:#64748b; font-weight:600;">Co-Curricular Activities:</td><td><strong>${app.activity_category || 'None'}</strong></td></tr>
+            </table>
+
+          </div>
+
+          <div style="width:130px; text-align:center;">
+            ${photoHtml}
+            <div style="margin-top:12px; border:2px dashed #16a34a; color:#16a34a; font-weight:800; font-size:12.5px; padding:3px 6px; border-radius:4px; letter-spacing:1px; background:#f0fdf4;">APPROVED</div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('officialFormPreviewModal').style.display = 'flex';
+  }
+
+  function closeOfficialPreview() { document.getElementById('officialFormPreviewModal').style.display = 'none'; }
+
+  // FULL EDIT MODAL
+  function openFullEditModal(app) {
+    document.getElementById('fullEditForm').action = `/admin/update-full-application/${app.id}`;
+    document.getElementById('editFormSearchQuery').value = app.application_id || '';
+    document.getElementById('editModalSubTitle').textContent = `Editing Record for: ${app.full_name_en} (${app.application_id})`;
+
+    let cleanDob = app.date_of_birth || '';
+    if (cleanDob.includes('T')) cleanDob = cleanDob.split('T')[0];
+    document.getElementById('edit_date_of_birth').value = cleanDob;
+
+    document.getElementById('edit_full_name_en').value = app.full_name_en || '';
+    document.getElementById('edit_full_name_bn').value = app.full_name_bn || '';
+    document.getElementById('edit_father_name_en').value = app.father_name_en || '';
+    document.getElementById('edit_father_name_bn').value = app.father_name_bn || '';
+    document.getElementById('edit_father_income').value = app.father_income || '0';
+    document.getElementById('edit_mother_name_en').value = app.mother_name_en || '';
+    document.getElementById('edit_mother_name_bn').value = app.mother_name_bn || '';
+    document.getElementById('edit_mother_income').value = app.mother_income || '0';
+    document.getElementById('edit_gender').value = app.gender || '';
+    document.getElementById('edit_religion').value = app.religion || '';
+    document.getElementById('edit_blood_group').value = app.blood_group || '';
+    document.getElementById('edit_mobile').value = app.mobile || '';
+    document.getElementById('edit_email').value = app.email || '';
+
+    document.getElementById('edit_present_village').value = app.present_village || '';
+    document.getElementById('edit_present_post').value = app.present_post_office || '';
+    document.getElementById('edit_present_thana').value = app.present_thana || '';
+    document.getElementById('edit_present_dist').value = app.present_district || '';
+    document.getElementById('edit_permanent_village').value = app.permanent_village || '';
+    document.getElementById('edit_permanent_post').value = app.permanent_post_office || '';
+    document.getElementById('edit_permanent_thana').value = app.permanent_thana || '';
+    document.getElementById('edit_permanent_dist').value = app.permanent_district || '';
+
+    document.getElementById('edit_ssc_roll').value = app.ssc_roll || '';
+    document.getElementById('edit_ssc_reg').value = app.ssc_reg || '';
+    document.getElementById('edit_ssc_board').value = app.ssc_board || '';
+    document.getElementById('edit_passing_year').value = app.passing_year || '2025';
+    document.getElementById('edit_gpa').value = app.gpa || '5.00';
+    document.getElementById('edit_ssc_group').value = app.ssc_group || 'Humanities';
+
+    document.getElementById('edit_class_roll').value = app.class_roll || '';
+    document.getElementById('edit_receipt_no').value = app.receipt_no || '';
+    document.getElementById('edit_group_name').value = (app.group_name === 'Commerce' ? 'Business Studies' : app.group_name) || 'Science';
+    document.getElementById('edit_status').value = app.status || 'Approved';
+
+    renderEditSubjects(document.getElementById('edit_group_name').value);
+
+    const activeActivities = (app.activity_category || '').split(',').map(s => s.trim());
+    document.querySelectorAll('#fullEditModal .edit-act-cb').forEach(cb => {
+      cb.checked = activeActivities.includes(cb.value);
+    });
+
+    document.getElementById('fullEditModal').style.display = 'flex';
+  }
+
+  function closeFullEditModal() { document.getElementById('fullEditModal').style.display = 'none'; }
+
+  function renderEditSubjects(group) {
+    const compContainer = document.getElementById('editCompulsoryChips');
+    const dynamicContainer = document.getElementById('editDynamicSubjects');
+    const compInput = document.getElementById('editCompulsoryInput');
+
+    compContainer.innerHTML = subjectCatalog.Compulsory.map(sub => `<span class="sub-badge">✓ ${sub}</span>`).join('');
+    compInput.value = subjectCatalog.Compulsory.join(', ');
+    dynamicContainer.innerHTML = '';
+
+    if (group === 'Science') {
+      dynamicContainer.innerHTML = `
+        <div class="edit-grid-2">
+          <input type="hidden" name="elective_subjects" value="Physics (174, 175)">
+          <input type="hidden" name="elective_subjects" value="Chemistry (176, 177)">
+          <div class="edit-field"><label>Major Elective *</label><select name="elective_subjects" id="editSciElective" onchange="syncEditScience(this.value)"><option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option><option value="Biology (178, 179)">Biology (178, 179)</option></select></div>
+          <div class="edit-field"><label>4th Subject *</label><select name="fourth_subject" id="editSciFourth"><option value="Biology (178, 179)">Biology (178, 179)</option><option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option></select></div>
+        </div>`;
+    } else if (group === 'Humanities') {
+      let html = `<div class="edit-grid-2">`;
+      subjectCatalog.Humanities.electives.forEach(el => {
+        html += `<div class="edit-field"><label>${el.label}</label><select name="elective_subjects">${el.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select></div>`;
+      });
+      html += `<div class="edit-field"><label>4th Subject *</label><select name="fourth_subject">${subjectCatalog.Humanities.fourthSubjects.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select></div></div>`;
+      dynamicContainer.innerHTML = html;
+    } else {
+      dynamicContainer.innerHTML = `
+        <input type="hidden" name="elective_subjects" value="Accounting (253, 254)">
+        <input type="hidden" name="elective_subjects" value="Business Organization & Management (277, 278)">
+        <input type="hidden" name="elective_subjects" value="Production Management & Marketing (286, 287)">
+        <div class="edit-field" style="margin-top: 10px;"><label>4th Subject *</label><select name="fourth_subject">${subjectCatalog.BusinessStudies.fourthSubjects.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select></div>
+      `;
+    }
+  }
+
+  function syncEditScience(val) {
+    document.getElementById('editSciFourth').value = val.includes('Higher Mathematics') ? 'Biology (178, 179)' : 'Higher Mathematics (265, 266)';
+  }
+
+  function toggleAnalysisPanel() {
+    const panel = document.getElementById('admissionAnalysisPanel');
+    const registerSection = document.getElementById('approvedRegisterSection');
+    const isHidden = panel.style.display === 'none' || !panel.style.display;
+    panel.style.display = isHidden ? 'block' : 'none';
+    if (registerSection) {
+      registerSection.style.display = isHidden ? 'none' : 'block';
+    }
+    if (isHidden) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function downloadGroupPhotos() {
+    const sel = document.getElementById('groupFilterSelect');
+    const group = sel ? sel.value : 'all';
+    window.location.href = '/admin/download-photos?group=' + encodeURIComponent(group);
+  }
+
+  function copyPendingValue(btn, text) {
+    const doCopy = () => {
+      const original = btn.textContent;
+      btn.textContent = '✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 1200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(doCopy).catch(() => {});
+    } else {
+      const temp = document.createElement('textarea');
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      try { document.execCommand('copy'); doCopy(); } catch (e) {}
+      document.body.removeChild(temp);
+    }
+  }
+
+  function promptDelete(id, name) {
+    document.getElementById('deleteStudentName').textContent = name;
+    document.getElementById('deleteForm').action = `/admin/delete/${id}`;
+    document.getElementById('deleteWarningModal').style.display = 'flex';
+  }
+  function closeDeleteModal() { document.getElementById('deleteWarningModal').style.display = 'none'; }
+
+  // PDF DOWNLOAD ENGINE
+  function triggerDirectPDF(app) {
+    const engine = document.getElementById('pdfEngineContainer');
+    const photoHtml = app.photo_url 
+      ? `<img src="${app.photo_url}" style="width:130px; height:155px; object-fit:cover; border:1.5px solid #cbd5e1; border-radius:4px;" crossorigin="anonymous">` 
+      : `<div style="width:130px; height:155px; border:1.5px solid #cbd5e1; display:flex; align-items:center; justify-content:center; font-size:12px; background:#f8fafc; color:#94a3b8;">Photo</div>`;
+
+    engine.innerHTML = `
+      <div id="hiddenPdfTarget" style="width: 195mm; min-height: 275mm; max-height: 280mm; box-sizing: border-box; margin: 0 auto; padding: 18px 20px; background: #ffffff; border: 2px solid #1e3a8a; border-radius: 4px; font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="text-align:center; border-bottom:2px solid #1e3a8a; padding-bottom:8px; margin-bottom:12px;">
+            <h1 style="margin:0; color:#1e3a8a; font-size:24px; text-transform:uppercase; letter-spacing:0.8px; font-weight:800; font-family:'Times New Roman', serif;">Birganj Govt. College</h1>
+            <p style="margin:2px 0 0 0; font-size:13.5px; font-style:italic; font-weight:600; color:#475569;">Birganj, Dinajpur</p>
+            <div style="margin-top:4px; display:inline-block; background:#eff6ff; border:1px solid #bfdbfe; padding:3px 14px; border-radius:4px; font-size:12px; font-weight:800; color:#1e3a8a;">Higher Secondary (Class XI) Official Admission Form</div>
+            <p style="margin:3px 0 0 0; font-size:11px; color:#64748b;">Academic Session: ${app.academic_session || '2026-2027'} | College Archive Record</p>
+          </div>
+
+          <div style="background:#ecfdf5; border:1px solid #a7f3d0; padding:8px 14px; border-radius:5px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:12.5px;">
+            <div>Tracking ID: <strong style="color:#1d4ed8; font-family:monospace; font-size:13.5px;">${app.application_id}</strong></div>
+            <div>Status: <strong style="color:#059669;">✓ ADMISSION APPROVED</strong></div>
+            <div>Class Roll: <strong style="background:#059669; color:#ffffff; padding:2px 9px; border-radius:10px; font-size:13px;">${app.class_roll || 'Pending'}</strong></div>
+            <div>Fee Receipt No: <strong style="color:#0f172a;">${app.receipt_no || 'Paid'}</strong></div>
+          </div>
+
+          <div style="display:flex; gap:16px;">
+            <div style="flex:1;">
+              <h4 style="font-size:12.5px; font-weight:800; color:#1e3a8a; border-bottom:1.5px solid #cbd5e1; padding-bottom:2px; margin:0 0 6px 0;">1. PERSONAL INFORMATION</h4>
+              <table style="width:100%; font-size:12.5px; line-height:2.35; border-collapse:collapse;">
+                <tr><td style="width:38%; color:#64748b; font-weight:600;">Full Name (English):</td><td><strong>${app.full_name_en || '-'}</strong></td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Full Name (Bangla):</td><td><strong>${app.full_name_bn || '-'}</strong></td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Father's Name (English):</td><td>${app.father_name_en || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Father's Name (Bangla):</td><td>${app.father_name_bn || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Father's Monthly Income:</td><td>BDT ${app.father_income || '0'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Mother's Name (English):</td><td>${app.mother_name_en || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Mother's Name (Bangla):</td><td>${app.mother_name_bn || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Mother's Monthly Income:</td><td>BDT ${app.mother_income || '0'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Date of Birth & Gender:</td><td>${app.date_of_birth || '-'} | ${app.gender || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Religion & Blood Group:</td><td>${app.religion || '-'} | ${app.blood_group || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Mobile Number:</td><td>${app.mobile || '-'}</td></tr>
+              </table>
+
+              <h4 style="font-size:12.5px; font-weight:800; color:#1e3a8a; border-bottom:1.5px solid #cbd5e1; padding-bottom:2px; margin:12px 0 6px 0;">2. ADDRESS INFORMATION</h4>
+              <table style="width:100%; font-size:12px; line-height:2.30; border-collapse:collapse;">
+                <tr><td style="width:38%; color:#64748b; font-weight:600;">Present Address:</td><td>${app.present_village || '-'}, PO: ${app.present_post_office || '-'}, Upazila: ${app.present_thana || '-'}, Dist: ${app.present_district || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Permanent Address:</td><td>${app.permanent_village || '-'}, PO: ${app.permanent_post_office || '-'}, Upazila: ${app.permanent_thana || '-'}, Dist: ${app.permanent_district || '-'}</td></tr>
+              </table>
+
+              <h4 style="font-size:12.5px; font-weight:800; color:#1e3a8a; border-bottom:1.5px solid #cbd5e1; padding-bottom:2px; margin:12px 0 6px 0;">3. ACADEMIC & ALLOCATED SUBJECTS</h4>
+              <table style="width:100%; font-size:12.5px; line-height:2.35; border-collapse:collapse;">
+                <tr><td style="width:38%; color:#64748b; font-weight:600;">SSC Roll & Reg:</td><td>Roll: ${app.ssc_roll || '-'} | Reg: ${app.ssc_reg || '-'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Board & Year:</td><td>${app.ssc_board || '-'} Board | ${app.passing_year || '-'} (GPA: <strong>${app.gpa || '-'}</strong>)</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Enrolled Group:</td><td><strong style="color:#b45309; background:#fef3c7; padding:2px 8px; border-radius:3px;">${app.group_name || '-'}</strong></td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Compulsory Subjects:</td><td>${app.compulsory_subjects || 'Default Core'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Elective Subjects:</td><td>${app.elective_subjects || 'Assigned'}</td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">4th Subject:</td><td><strong>${app.fourth_subject || 'Assigned'}</strong></td></tr>
+                <tr><td style="color:#64748b; font-weight:600;">Co-Curricular Activities:</td><td><strong>${app.activity_category || 'None'}</strong></td></tr>
+              </table>
+            </div>
+
+            <div style="width:130px; text-align:center;">
+              ${photoHtml}
+              <div style="margin-top:12px; border:2px dashed #16a34a; color:#16a34a; font-weight:800; font-size:12.5px; padding:3px 6px; border-radius:4px; letter-spacing:1px; background:#f0fdf4;">APPROVED</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-top:16px; padding-top:6px;">
+          <div style="text-align:center; width:140px; border-top:1.5px solid #334155; font-size:11px; font-weight:700; color:#334155;">Student's Signature</div>
+          <div style="text-align:center; width:140px; border-top:1.5px solid #334155; font-size:11px; font-weight:700; color:#334155;">Guardian's Signature</div>
+          <div style="text-align:center; width:140px; border-top:1.5px solid #334155; font-size:11px; font-weight:700; color:#334155;">Principal / Authority</div>
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      const target = document.getElementById('hiddenPdfTarget');
+      const opt = {
+        margin: [8, 6, 8, 6],
+        filename: `Admission_Form_${app.class_roll || 'Roll'}_${app.application_id}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0, x: 0, y: 0, windowWidth: target.scrollWidth },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(target).toPdf().get('pdf').then(function(pdf) {
+        if (pdf.internal.getNumberOfPages() > 1) pdf.deletePage(2);
+      }).save().then(() => { engine.innerHTML = ''; });
+    }, 150);
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('custom-modal-overlay')) {
+      e.target.style.display = 'none';
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,266 @@
+<%- include('partials/header', { title: 'Application Submitted Successfully' }) %>
+
+<main class="success-overlay">
+  <!-- Custom Success Modal Popup -->
+  <div class="success-modal-card">
+    
+    <!-- Animated Checkmark Icon -->
+    <div class="icon-circle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+
+    <h2>Application Submitted!</h2>
+    <p class="subtitle">Your application has been securely received and recorded in our system.</p>
+
+    <!-- Tracking ID Display Box with Copy Button -->
+    <div class="tracking-box">
+      <div class="tracking-text">
+        <span class="label">YOUR TRACKING ID</span>
+        <span class="id-value" id="trackingIdText"><%= application.application_id %></span>
+      </div>
+      <button type="button" class="copy-btn" id="copyBtn" onclick="copyTrackingId()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span id="copyBtnText">Copy</span>
+      </button>
+    </div>
+
+    <!-- Student Summary Card -->
+    <div class="summary-card">
+      <div class="summary-row">
+        <span>Applicant Name:</span>
+        <strong><%= application.full_name_en %></strong>
+      </div>
+      <div class="summary-row">
+        <span>Applied Group:</span>
+        <span class="group-pill"><%= application.group_name %></span>
+      </div>
+      <div class="summary-row">
+        <span>Registered Mobile:</span>
+        <span><%= application.mobile %></span>
+      </div>
+      <div class="summary-row">
+        <span>Application Status:</span>
+        <span class="status-badge">Submitted</span>
+      </div>
+    </div>
+
+    <p class="instruction-note">
+      ℹ️ Please keep this Tracking ID safe. You can check your application status or print your form anytime using this ID or your SSC Roll number.
+    </p>
+
+    <!-- Action Buttons -->
+    <div class="modal-actions">
+      <a href="/status" class="btn btn-primary">Check Status / View Form</a>
+      <a href="/" class="btn btn-secondary">Back to Home</a>
+    </div>
+
+  </div>
+</main>
+
+<style>
+  .success-overlay {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 16px;
+    background: radial-gradient(circle at center, #f1f5f9 0%, #e2e8f0 100%);
+  }
+
+  /* Custom Popup Card */
+  .success-modal-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 520px;
+    padding: 36px 32px;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    animation: popupIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes popupIn {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .icon-circle {
+    width: 72px;
+    height: 72px;
+    background-color: #dcfce7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    box-shadow: 0 0 0 8px rgba(220, 252, 231, 0.5);
+  }
+
+  .success-modal-card h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  /* Tracking ID Box */
+  .tracking-box {
+    background-color: #f8fafc;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .tracking-text {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+  }
+  .tracking-text .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.5px;
+  }
+  .tracking-text .id-value {
+    font-size: 19px;
+    font-weight: 800;
+    color: #1d4ed8;
+    font-family: monospace;
+    margin-top: 2px;
+  }
+  .copy-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+  }
+
+  /* Summary Card */
+  .summary-card {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border: 1px solid #f1f5f9;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13.5px;
+    color: #475569;
+    border-bottom: 1px solid #edf2f7;
+  }
+  .summary-row:last-child {
+    border-bottom: none;
+  }
+  .group-pill {
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .status-badge {
+    background: #ecfdf5;
+    color: #059669;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 12.5px;
+  }
+
+  .instruction-note {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  /* Actions */
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+  }
+  .btn-primary {
+    background-color: #1d4ed8;
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background-color: #1e40af;
+  }
+  .btn-secondary {
+    background-color: #e2e8f0;
+    color: #334155;
+  }
+  .btn-secondary:hover {
+    background-color: #cbd5e1;
+  }
+</style>
+
+<script>
+  function copyTrackingId() {
+    const text = document.getElementById('trackingIdText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btnText = document.getElementById('copyBtnText');
+      btnText.textContent = 'Copied!';
+      setTimeout(() => {
+        btnText.textContent = 'Copy';
+      }, 2000);
+    });
+  }
+</script>
+
+<%- include('partials/footer') %>

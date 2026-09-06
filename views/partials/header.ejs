@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" translate="no" class="notranslate">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate">
+  <title><%= typeof title !== 'undefined' ? title : 'Eleventh Admission' %></title>
+  <link rel="stylesheet" href="/public/css/layout.css">
+  <% if (typeof extraStyles !== 'undefined' && Array.isArray(extraStyles)) { %>
+    <% extraStyles.forEach(function(cssHref) { %>
+      <link rel="stylesheet" href="<%= cssHref %>">
+    <% }); %>
+  <% } %>
+</head>
+<body>
+
+  <!-- Top Fixed Navbar -->
+  <nav class="navbar">
+    <a href="/" class="brand">🎓 Eleventh Admission</a>
+
+    <div class="nav-menu">
+      
+      <!-- Admission Dropdown -->
+      <div class="dropdown">
+        <button type="button" class="dropbtn">
+          Admission <span class="arrow">▼</span>
+        </button>
+        <div class="dropdown-content">
+          <a href="/">Home</a>
+          <a href="/apply">Apply Online</a>
+          <a href="/status">Check Status / View Form</a>
+          <div class="dropdown-divider"></div>
+          <!-- Admin Submenu -->
+          <a href="/admin" style="color: #1d4ed8; font-weight: 600;">🔒 Admin Panel</a>
+        </div>
+      </div>
+
+      <a href="/logout" class="nav-logout">Logout</a>
+    </div>
+  </nav>
