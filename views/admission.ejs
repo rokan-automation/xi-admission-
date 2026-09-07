@@ -546,7 +546,27 @@
   let currentTargetInput = null;
 
   historyInputs.forEach(input => {
+    // Kill Chrome's own "previously typed values" dropdown so ONLY our
+    // custom Recent-5 popup shows. Chrome ignores autocomplete="off" /
+    // "new-password" on plain text fields once it has already saved
+    // values for that field name, but it never shows suggestions on a
+    // field that is readonly at the moment it receives focus. We make
+    // the field readonly by default and free it right as focus lands.
+    input.setAttribute('readonly', 'readonly');
+
+    input.addEventListener('mousedown', () => {
+      input.removeAttribute('readonly');
+    });
+    input.addEventListener('touchstart', () => {
+      input.removeAttribute('readonly');
+    });
+
+    input.addEventListener('blur', () => {
+      input.setAttribute('readonly', 'readonly');
+    });
+
     input.addEventListener('focus', () => {
+      input.removeAttribute('readonly');
       const fieldName = input.name;
       const list = getHistory(fieldName);
       if (list.length === 0) {
