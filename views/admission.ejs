@@ -48,41 +48,41 @@
           <!-- Full Name -->
           <div class="form-group">
             <label>Full Name (English) *</label>
-            <input type="text" name="full_name_en" class="history-input" value="<%= old.full_name_en || '' %>" placeholder="FULL NAME IN CAPITAL" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="full_name_en" class="history-input" value="<%= old.full_name_en || '' %>" placeholder="FULL NAME IN CAPITAL" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Full Name (Bangla Script) *</label>
-            <input type="text" name="full_name_bn" class="history-input" value="<%= old.full_name_bn || '' %>" placeholder="Name in Bangla script" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="full_name_bn" class="history-input" value="<%= old.full_name_bn || '' %>" placeholder="Name in Bangla script" autocomplete="off" data-lpignore="true" required>
           </div>
 
           <!-- Father's Name -->
           <div class="form-group">
             <label>Father's Name (English) *</label>
-            <input type="text" name="father_name_en" class="history-input" value="<%= old.father_name_en || '' %>" placeholder="Father's full name" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="father_name_en" class="history-input" value="<%= old.father_name_en || '' %>" placeholder="Father's full name" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Father's Name (Bangla Script) *</label>
-            <input type="text" name="father_name_bn" class="history-input" value="<%= old.father_name_bn || '' %>" placeholder="Father's name in Bangla" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="father_name_bn" class="history-input" value="<%= old.father_name_bn || '' %>" placeholder="Father's name in Bangla" autocomplete="off" data-lpignore="true" required>
           </div>
 
           <!-- Mother's Name -->
           <div class="form-group">
             <label>Mother's Name (English) *</label>
-            <input type="text" name="mother_name_en" class="history-input" value="<%= old.mother_name_en || '' %>" placeholder="Mother's full name" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="mother_name_en" class="history-input" value="<%= old.mother_name_en || '' %>" placeholder="Mother's full name" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Mother's Name (Bangla Script) *</label>
-            <input type="text" name="mother_name_bn" class="history-input" value="<%= old.mother_name_bn || '' %>" placeholder="Mother's name in Bangla" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="mother_name_bn" class="history-input" value="<%= old.mother_name_bn || '' %>" placeholder="Mother's name in Bangla" autocomplete="off" data-lpignore="true" required>
           </div>
 
           <!-- Incomes -->
           <div class="form-group">
             <label>Father's Monthly Income (BDT) *</label>
-            <input type="number" name="father_income" class="history-input" value="<%= old.father_income || '' %>" placeholder="e.g. 25000" min="0" autocomplete="new-password" data-lpignore="true" required>
+            <input type="number" name="father_income" class="history-input" value="<%= old.father_income || '' %>" placeholder="e.g. 25000" min="0" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Mother's Monthly Income (BDT) *</label>
-            <input type="number" name="mother_income" class="history-input" value="<%= old.mother_income !== undefined ? old.mother_income : '0' %>" placeholder="e.g. 0 or 15000" min="0" autocomplete="new-password" data-lpignore="true" required>
+            <input type="number" name="mother_income" class="history-input" value="<%= old.mother_income !== undefined ? old.mother_income : '0' %>" placeholder="e.g. 0 or 15000" min="0" autocomplete="off" data-lpignore="true" required>
           </div>
 
           <!-- DOB & Gender -->
@@ -145,11 +145,11 @@
           <!-- Mobile & Email -->
           <div class="form-group">
             <label>Mobile Number (11 Digits) *</label>
-            <input type="text" name="mobile" class="history-input" maxlength="11" value="<%= old.mobile || '' %>" placeholder="017XXXXXXXX" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="mobile" class="history-input" maxlength="11" value="<%= old.mobile || '' %>" placeholder="017XXXXXXXX" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Email Address (Optional)</label>
-            <input type="text" name="email" class="history-input" value="<%= old.email || '' %>" placeholder="e.g. name@domain.com" autocomplete="new-password" data-lpignore="true">
+            <input type="text" name="email" class="history-input" value="<%= old.email || '' %>" placeholder="e.g. name@domain.com" autocomplete="off" data-lpignore="true">
           </div>
         </div>
 
@@ -167,19 +167,19 @@
         <div class="form-grid-2">
           <div class="form-group">
             <label>Village / Road *</label>
-            <input type="text" id="pres_village" name="present_village" class="history-input" value="<%= old.present_village || '' %>" placeholder="Village or Road" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="pres_village" name="present_village" class="history-input" value="<%= old.present_village || '' %>" placeholder="Village or Road" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Post Office *</label>
-            <input type="text" id="pres_post" name="present_post_office" class="history-input" value="<%= old.present_post_office || '' %>" placeholder="Post Office" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="pres_post" name="present_post_office" class="history-input" value="<%= old.present_post_office || '' %>" placeholder="Post Office" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Upazila / Thana *</label>
-            <input type="text" id="pres_thana" name="present_thana" class="history-input" value="<%= old.present_thana || '' %>" placeholder="Upazila / Thana" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="pres_thana" name="present_thana" class="history-input" value="<%= old.present_thana || '' %>" placeholder="Upazila / Thana" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>District *</label>
-            <input type="text" id="pres_dist" name="present_district" class="history-input" value="<%= old.present_district || '' %>" placeholder="District" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="pres_dist" name="present_district" class="history-input" value="<%= old.present_district || '' %>" placeholder="District" autocomplete="off" data-lpignore="true" required>
           </div>
         </div>
 
@@ -194,19 +194,19 @@
         <div class="form-grid-2" style="margin-top: 12px;">
           <div class="form-group">
             <label>Village / Road *</label>
-            <input type="text" id="perm_village" name="permanent_village" class="history-input" value="<%= old.permanent_village || '' %>" placeholder="Village or Road" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="perm_village" name="permanent_village" class="history-input" value="<%= old.permanent_village || '' %>" placeholder="Village or Road" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Post Office *</label>
-            <input type="text" id="perm_post" name="permanent_post_office" class="history-input" value="<%= old.permanent_post_office || '' %>" placeholder="Post Office" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="perm_post" name="permanent_post_office" class="history-input" value="<%= old.permanent_post_office || '' %>" placeholder="Post Office" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Upazila / Thana *</label>
-            <input type="text" id="perm_thana" name="permanent_thana" class="history-input" value="<%= old.permanent_thana || '' %>" placeholder="Upazila / Thana" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="perm_thana" name="permanent_thana" class="history-input" value="<%= old.permanent_thana || '' %>" placeholder="Upazila / Thana" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>District *</label>
-            <input type="text" id="perm_dist" name="permanent_district" class="history-input" value="<%= old.permanent_district || '' %>" placeholder="District" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" id="perm_dist" name="permanent_district" class="history-input" value="<%= old.permanent_district || '' %>" placeholder="District" autocomplete="off" data-lpignore="true" required>
           </div>
         </div>
 
@@ -223,11 +223,11 @@
         <div class="form-grid-2">
           <div class="form-group">
             <label>SSC Roll Number *</label>
-            <input type="text" name="ssc_roll" class="history-input" value="<%= old.ssc_roll || '' %>" placeholder="e.g. 123456" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="ssc_roll" class="history-input" value="<%= old.ssc_roll || '' %>" placeholder="e.g. 123456" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>SSC Registration Number *</label>
-            <input type="text" name="ssc_reg" class="history-input" value="<%= old.ssc_reg || '' %>" placeholder="e.g. 1234567890" autocomplete="new-password" data-lpignore="true" required>
+            <input type="text" name="ssc_reg" class="history-input" value="<%= old.ssc_reg || '' %>" placeholder="e.g. 1234567890" autocomplete="off" data-lpignore="true" required>
           </div>
           <div class="form-group">
             <label>Education Board *</label>
@@ -249,7 +249,7 @@
           </div>
           <div class="form-group">
             <label>SSC GPA (Out of 5.00) *</label>
-            <input type="number" step="0.01" min="1.00" max="5.00" name="gpa" class="history-input" value="<%= old.gpa || '' %>" placeholder="5.00" autocomplete="new-password" data-lpignore="true" required>
+            <input type="number" step="0.01" min="1.00" max="5.00" name="gpa" class="history-input" value="<%= old.gpa || '' %>" placeholder="5.00" autocomplete="off" data-lpignore="true" required>
           </div>
           
           <div class="form-group">
@@ -553,13 +553,6 @@
     // field that is readonly at the moment it receives focus. We make
     // the field readonly by default and free it right as focus lands.
     input.setAttribute('readonly', 'readonly');
-
-    input.addEventListener('mousedown', () => {
-      input.removeAttribute('readonly');
-    });
-    input.addEventListener('touchstart', () => {
-      input.removeAttribute('readonly');
-    });
 
     input.addEventListener('blur', () => {
       input.setAttribute('readonly', 'readonly');
