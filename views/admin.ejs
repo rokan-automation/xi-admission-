@@ -139,6 +139,8 @@
                   <option value="Science" <%= searchedStudent.group_name === 'Science' ? 'selected' : '' %>>Science</option>
                   <option value="Humanities" <%= searchedStudent.group_name === 'Humanities' ? 'selected' : '' %>>Humanities</option>
                   <option value="Business Studies" <%= searchedStudent.group_name === 'Business Studies' ? 'selected' : '' %>>Business Studies</option>
+                  <option value="BMT (Digital)" <%= searchedStudent.group_name === 'BMT (Digital)' ? 'selected' : '' %>>BMT (Digital)</option>
+                  <option value="BMT (HRM)" <%= searchedStudent.group_name === 'BMT (HRM)' ? 'selected' : '' %>>BMT (HRM)</option>
                 </select>
               </div>
             </div>
@@ -168,7 +170,7 @@
 
   <!-- ================= ADMISSION ANALYSIS ================= -->
   <% const A = (typeof analytics !== 'undefined' && analytics) ? analytics : { totalByGroup: {}, approvedByGroup: {}, electiveCounts: {}, fourthSubjectCounts: {}, pendingByGroup: {} }; %>
-  <% const groupOrder = ['Science', 'Humanities', 'Business Studies']; %>
+  <% const groupOrder = ['Science', 'Humanities', 'Business Studies', 'BMT (Digital)', 'BMT (HRM)']; %>
   <% const allGroupKeys = Array.from(new Set([...groupOrder, ...Object.keys(A.totalByGroup || {})])); %>
 
   <% const svgChart = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V10M12 20V4M20 20V14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; %>
@@ -176,8 +178,8 @@
   <% const svgBook = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5c-.8 0-1.5-.7-1.5-1.5v-13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5v-13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'; %>
   <% const svgBriefcase = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8V6.5C8 5.1 9.1 4 10.5 4h3C14.9 4 16 5.1 16 6.5V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 13h18" stroke="currentColor" stroke-width="2"/></svg>'; %>
   <% const svgCap = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4 2 9l10 5 10-5-10-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'; %>
-  <% const groupIcons = { 'Science': svgFlask, 'Humanities': svgBook, 'Business Studies': svgBriefcase }; %>
-  <% const groupAccent = { 'Science': 'accent-blue', 'Humanities': 'accent-amber', 'Business Studies': 'accent-purple' }; %>
+  <% const groupIcons = { 'Science': svgFlask, 'Humanities': svgBook, 'Business Studies': svgBriefcase, 'BMT (Digital)': svgCap, 'BMT (HRM)': svgCap }; %>
+  <% const groupAccent = { 'Science': 'accent-blue', 'Humanities': 'accent-amber', 'Business Studies': 'accent-purple', 'BMT (Digital)': 'accent-blue', 'BMT (HRM)': 'accent-amber' }; %>
 
   <!-- Defines the official elective "clusters" so subjects are shown grouped & in serial order, not just sorted by count -->
   <% const electiveGroupDefs = {
@@ -542,6 +544,8 @@
               <option value="Science">Science</option>
               <option value="Humanities">Humanities</option>
               <option value="Business Studies">Business Studies</option>
+              <option value="BMT (Digital)">BMT (Digital)</option>
+              <option value="BMT (HRM)">BMT (HRM)</option>
             </select>
           </div>
           <div class="edit-field">
@@ -689,6 +693,24 @@
     BusinessStudies: {
       fixedElectives: ['Accounting (253, 254)', 'Business Organization & Management (277, 278)', 'Production Management & Marketing (286, 287)'],
       fourthSubjects: ['Agricultural Studies (239, 240)', 'Economics (109, 110)', 'Home Science (273, 274)', 'Statistics (129, 130)']
+    },
+    BMTCompulsory: [
+      'Bangla (1st & 2nd Paper)',
+      'English (1st & 2nd Paper)',
+      'Computer Office Application (1st & 2nd Paper)',
+      'Accounting Principles and Application (1st & 2nd Paper)',
+      'Business Organization and Management (1st & 2nd Paper)',
+      'Marketing Principles and Application (1st & 2nd Paper)',
+      'Business Mathematics and Statistics',
+      'Economics and Commercial Geography',
+      'Business English and Communication',
+      'Office Management'
+    ],
+    'BMT (Digital)': {
+      fourthSubject: 'Digital Technology in Business (1st & 2nd Paper)'
+    },
+    'BMT (HRM)': {
+      fourthSubject: 'Human Resource Management (1st & 2nd Paper)'
     }
   };
 
@@ -740,9 +762,27 @@
 
     if (!compContainer || !dynamicContainer || !compInput) return;
 
+    dynamicContainer.innerHTML = '';
+
+    if (group === 'BMT (Digital)' || group === 'BMT (HRM)') {
+      const bmt = subjectCatalog[group];
+      compContainer.innerHTML = subjectCatalog.BMTCompulsory.map(sub => `<span class="sub-badge">✓ ${sub}</span>`).join('');
+      compInput.value = subjectCatalog.BMTCompulsory.join(', ');
+      dynamicContainer.innerHTML = `
+        <div style="margin-bottom:12px;">
+          <label style="font-weight:700; color:#334155; font-size:12.5px; display:block; margin-bottom:6px;">Elective Subjects:</label>
+          <p style="font-size:12.5px; color:#64748b; margin:0;">No elective subjects for this group.</p>
+        </div>
+        <div class="edit-field">
+          <label>4th Subject *</label>
+          <input type="text" value="${bmt.fourthSubject}" disabled style="width:100%; padding:9.5px 12px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:13.5px; background:#f1f5f9; box-sizing:border-box;">
+          <input type="hidden" name="fourth_subject" value="${bmt.fourthSubject}">
+        </div>`;
+      return;
+    }
+
     compContainer.innerHTML = subjectCatalog.Compulsory.map(sub => `<span class="sub-badge">✓ ${sub}</span>`).join('');
     compInput.value = subjectCatalog.Compulsory.join(', ');
-    dynamicContainer.innerHTML = '';
 
     if (group === 'Science') {
       dynamicContainer.innerHTML = `
@@ -769,7 +809,7 @@
           </div>
           <div class="edit-field">
             <label>4th Subject *</label>
-            <select name="fourth_subject" id="appSciFourth" required>
+            <select name="fourth_subject" id="appSciFourth" required onchange="validateSciFourth(this, 'appSciElective')">
               <option value="Biology (178, 179)">Biology (178, 179)</option>
               <option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option>
             </select>
@@ -823,6 +863,17 @@
     }
   }
 
+  // Blocks selecting the same subject as both Major Elective and 4th Subject in Science group
+  function validateSciFourth(fourthSelect, majorSelectId) {
+    const majorSelect = document.getElementById(majorSelectId);
+    if (!majorSelect || !fourthSelect) return;
+    if (fourthSelect.value === majorSelect.value) {
+      const corrected = majorSelect.value.includes('Higher Mathematics') ? 'Biology (178, 179)' : 'Higher Mathematics (265, 266)';
+      fourthSelect.value = corrected;
+      showCustomToast('⚠️ You already selected ' + majorSelect.value + ' as the Major Elective. It cannot be chosen again as the 4th Subject.', true);
+    }
+  }
+
   // Safe Decoders
   function handleEditClick(encodedApp) {
     try {
@@ -855,7 +906,10 @@
     container.innerHTML = `
       <div style="border: 2px solid #1e3a8a; padding: 22px 26px; border-radius: 4px; background:#ffffff;">
         <div style="text-align:center; border-bottom:2px solid #1e3a8a; padding-bottom:10px; margin-bottom:14px;">
-          <h1 style="margin:0; color:#1e3a8a; font-size:25px; text-transform:uppercase; font-weight:800; font-family:'Times New Roman', serif;">Birganj Govt. College</h1>
+          <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+            <img src="/public/images/logo.png" alt="College Logo" style="width:48px; height:48px; object-fit:contain;">
+            <h1 style="margin:0; color:#1e3a8a; font-size:25px; text-transform:uppercase; font-weight:800; font-family:'Times New Roman', serif;">Birganj Govt. College</h1>
+          </div>
           <p style="margin:2px 0 0 0; font-size:14px; font-style:italic; font-weight:600; color:#475569;">Birganj, Dinajpur</p>
           <div style="margin-top:5px; display:inline-block; background:#eff6ff; border:1px solid #bfdbfe; padding:3px 14px; border-radius:4px; font-size:12.5px; font-weight:800; color:#1e3a8a;">Higher Secondary (Class XI) Official Admission Form</div>
           <p style="margin:3px 0 0 0; font-size:11.5px; color:#64748b;">Academic Session: ${app.academic_session || '2026-2027'} | Official College Record</p>
@@ -979,9 +1033,24 @@
     const dynamicContainer = document.getElementById('editDynamicSubjects');
     const compInput = document.getElementById('editCompulsoryInput');
 
+    dynamicContainer.innerHTML = '';
+
+    if (group === 'BMT (Digital)' || group === 'BMT (HRM)') {
+      const bmt = subjectCatalog[group];
+      compContainer.innerHTML = subjectCatalog.BMTCompulsory.map(sub => `<span class="sub-badge">✓ ${sub}</span>`).join('');
+      compInput.value = subjectCatalog.BMTCompulsory.join(', ');
+      dynamicContainer.innerHTML = `
+        <p style="font-size:12.5px; color:#64748b; margin:0 0 10px 0;">No elective subjects for this group.</p>
+        <div class="edit-field">
+          <label>4th Subject *</label>
+          <input type="text" value="${bmt.fourthSubject}" disabled style="background:#f1f5f9;">
+          <input type="hidden" name="fourth_subject" value="${bmt.fourthSubject}">
+        </div>`;
+      return;
+    }
+
     compContainer.innerHTML = subjectCatalog.Compulsory.map(sub => `<span class="sub-badge">✓ ${sub}</span>`).join('');
     compInput.value = subjectCatalog.Compulsory.join(', ');
-    dynamicContainer.innerHTML = '';
 
     if (group === 'Science') {
       dynamicContainer.innerHTML = `
@@ -989,7 +1058,7 @@
           <input type="hidden" name="elective_subjects" value="Physics (174, 175)">
           <input type="hidden" name="elective_subjects" value="Chemistry (176, 177)">
           <div class="edit-field"><label>Major Elective *</label><select name="elective_subjects" id="editSciElective" onchange="syncEditScience(this.value)"><option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option><option value="Biology (178, 179)">Biology (178, 179)</option></select></div>
-          <div class="edit-field"><label>4th Subject *</label><select name="fourth_subject" id="editSciFourth"><option value="Biology (178, 179)">Biology (178, 179)</option><option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option></select></div>
+          <div class="edit-field"><label>4th Subject *</label><select name="fourth_subject" id="editSciFourth" onchange="validateSciFourth(this, 'editSciElective')"><option value="Biology (178, 179)">Biology (178, 179)</option><option value="Higher Mathematics (265, 266)">Higher Mathematics (265, 266)</option></select></div>
         </div>`;
     } else if (group === 'Humanities') {
       let html = `<div class="edit-grid-2">`;
@@ -1069,7 +1138,10 @@
       <div id="hiddenPdfTarget" style="width: 195mm; min-height: 275mm; max-height: 280mm; box-sizing: border-box; margin: 0 auto; padding: 18px 20px; background: #ffffff; border: 2px solid #1e3a8a; border-radius: 4px; font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
           <div style="text-align:center; border-bottom:2px solid #1e3a8a; padding-bottom:8px; margin-bottom:12px;">
-            <h1 style="margin:0; color:#1e3a8a; font-size:24px; text-transform:uppercase; letter-spacing:0.8px; font-weight:800; font-family:'Times New Roman', serif;">Birganj Govt. College</h1>
+            <div style="display:flex; align-items:center; justify-content:center; gap:9px;">
+              <img src="/public/images/logo.png" alt="College Logo" style="width:44px; height:44px; object-fit:contain;">
+              <h1 style="margin:0; color:#1e3a8a; font-size:24px; text-transform:uppercase; letter-spacing:0.8px; font-weight:800; font-family:'Times New Roman', serif;">Birganj Govt. College</h1>
+            </div>
             <p style="margin:2px 0 0 0; font-size:13.5px; font-style:italic; font-weight:600; color:#475569;">Birganj, Dinajpur</p>
             <div style="margin-top:4px; display:inline-block; background:#eff6ff; border:1px solid #bfdbfe; padding:3px 14px; border-radius:4px; font-size:12px; font-weight:800; color:#1e3a8a;">Higher Secondary (Class XI) Official Admission Form</div>
             <p style="margin:3px 0 0 0; font-size:11px; color:#64748b;">Academic Session: ${app.academic_session || '2026-2027'} | College Archive Record</p>
