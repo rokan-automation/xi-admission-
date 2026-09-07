@@ -429,6 +429,17 @@
 }
 .subject-row { margin-bottom: 6px; }
 .subject-row:last-child { margin-bottom: 0; }
+.subject-row-clickable {
+  cursor: pointer;
+  padding: 4px 6px;
+  margin-left: -6px;
+  margin-right: -6px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+.subject-row-clickable:hover {
+  background: #eff6ff;
+}
 .subject-cluster {
   margin-bottom: 10px;
   padding-bottom: 8px;

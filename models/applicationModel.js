@@ -283,7 +283,7 @@ function splitSubjects(str) {
 async function getAdmissionAnalytics() {
   const { data, error } = await supabase
     .from('applications')
-    .select('group_name, status, elective_subjects, fourth_subject, application_id, ssc_roll');
+    .select('group_name, status, elective_subjects, fourth_subject, application_id, ssc_roll, class_roll');
 
   if (error) throw error;
 
@@ -291,7 +291,17 @@ async function getAdmissionAnalytics() {
   const approvedByGroup = {};
   const electiveCounts = {};      // { group: { subjectName: count } }
   const fourthSubjectCounts = {}; // { group: { subjectName: count } }
+  const electiveRolls = {};       // { group: { subjectName: [class_roll, ...] } }
+  const fourthSubjectRolls = {};  // { group: { subjectName: [class_roll, ...] } }
   const pendingByGroup = {};      // { group: [ { application_id, ssc_roll }, ... ] }
+
+  // Sort rolls numerically where possible, alphabetically otherwise
+  const rollSort = (a, b) => {
+    const na = parseInt(a, 10);
+    const nb = parseInt(b, 10);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a).localeCompare(String(b));
+  };
 
   (data || []).forEach((row) => {
     const group = row.group_name || 'Unspecified';
@@ -299,18 +309,25 @@ async function getAdmissionAnalytics() {
 
     if (row.status === 'Approved') {
       approvedByGroup[group] = (approvedByGroup[group] || 0) + 1;
+      const roll = row.class_roll || row.ssc_roll || '-';
 
       if (row.elective_subjects) {
         if (!electiveCounts[group]) electiveCounts[group] = {};
+        if (!electiveRolls[group]) electiveRolls[group] = {};
         splitSubjects(row.elective_subjects).forEach((sub) => {
           electiveCounts[group][sub] = (electiveCounts[group][sub] || 0) + 1;
+          if (!electiveRolls[group][sub]) electiveRolls[group][sub] = [];
+          electiveRolls[group][sub].push(roll);
         });
       }
 
       if (row.fourth_subject) {
         if (!fourthSubjectCounts[group]) fourthSubjectCounts[group] = {};
+        if (!fourthSubjectRolls[group]) fourthSubjectRolls[group] = {};
         const sub = row.fourth_subject.trim();
         fourthSubjectCounts[group][sub] = (fourthSubjectCounts[group][sub] || 0) + 1;
+        if (!fourthSubjectRolls[group][sub]) fourthSubjectRolls[group][sub] = [];
+        fourthSubjectRolls[group][sub].push(roll);
       }
     } else {
       if (!pendingByGroup[group]) pendingByGroup[group] = [];
@@ -321,7 +338,11 @@ async function getAdmissionAnalytics() {
     }
   });
 
-  return { totalByGroup, approvedByGroup, electiveCounts, fourthSubjectCounts, pendingByGroup };
+  // Sort every roll list once, in place
+  Object.values(electiveRolls).forEach((subj) => Object.values(subj).forEach((list) => list.sort(rollSort)));
+  Object.values(fourthSubjectRolls).forEach((subj) => Object.values(subj).forEach((list) => list.sort(rollSort)));
+
+  return { totalByGroup, approvedByGroup, electiveCounts, fourthSubjectCounts, electiveRolls, fourthSubjectRolls, pendingByGroup };
 }
 
 module.exports = {

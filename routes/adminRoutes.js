@@ -87,7 +87,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       searchedStudent: null,
       notFound: false,
       updated: false,
-      analytics: { totalByGroup: {}, approvedByGroup: {}, electiveCounts: {}, fourthSubjectCounts: {}, pendingByGroup: {} }
+      analytics: { totalByGroup: {}, approvedByGroup: {}, electiveCounts: {}, fourthSubjectCounts: {}, electiveRolls: {}, fourthSubjectRolls: {}, pendingByGroup: {} }
     });
   }
 });
